@@ -25,7 +25,7 @@ const Dashboard = () => {
         >
           Adatok lekérése
         </button>
-        {data && <p className="mt-4 text-gray-700">{JSON.stringify(data)}</p>}
+        {data && <p className="mt-4 text-gray-700">{data}</p>}
       </div>
     </div>
   );
