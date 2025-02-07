@@ -2,8 +2,8 @@
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Layout from '../components/Layout';
-import { protectedRoutes } from './protectedRoutes';
-import { publicRoutes } from './publicRoutes';
+import { protectedRoutes } from './ProtectedRoutes';
+import { publicRoutes } from './PublicRoutes';
 
 const AppRoutes = () => {
   return (

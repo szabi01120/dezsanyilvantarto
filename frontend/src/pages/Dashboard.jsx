@@ -1,5 +1,5 @@
 import React from 'react';
-import axios from 'axios';
+import axios from '../utils/axios';
 import { useState } from 'react';
 
 const Dashboard = () => {
@@ -7,8 +7,9 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:5000/api/hello');
-      setData(response.data.message);
+      const response = await axios.get('http://127.0.0.1:5000/api/users/');
+      setData(response.data.data.users[1].username);
+      console.log(response.data.data.users[1].username);
     } catch (error) {
       console.error('An error occurred:', error);
     }

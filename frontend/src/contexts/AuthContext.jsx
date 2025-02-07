@@ -11,16 +11,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       const storedUser = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
+      const storedToken = localStorage.getItem('token');
       const tokenExpiry = localStorage.getItem('tokenExpiry');
       
-      if (storedUser && token && tokenExpiry) {
+      if (storedUser && storedToken && tokenExpiry) {
         if (new Date().getTime() > parseInt(tokenExpiry)) {
           logout();
           return;
         } else {
           setUser(JSON.parse(storedUser));
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         }
       }      
       setLoading(false);
@@ -30,26 +30,37 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData, token) => {
-    setUser(userData);
-
-    const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000)
-    localStorage.setItem('token', token);
-    localStorage.setItem('tokenExpiry', expiryTime);
-    localStorage.setItem('user', JSON.stringify(userData));
-
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    try {
+      setUser(userData);
+  
+      const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000)
+      localStorage.setItem('user', JSON.stringify(userData.username));
+      localStorage.setItem('token', token);
+      localStorage.setItem('tokenExpiry', expiryTime);
+  
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } catch (error) {
+      console.error('Hiba történt a bejelentkezéskor', error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('tokenExpiry');
-    delete axios.defaults.headers.common['Authorization'];
+  const logout = async () => {
+    try {
+      await axios.post('http://127.0.0.1:5000/api/users/logout');
+    } catch (error) {
+      console.error('Hiba történt a kijelentkezéskor', error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpiry');
+      delete axios.defaults.headers.common['Authorization'];
+    }
   };
 
   if (loading) {
-    return <div>Loading...</div>; // vagy egy LoadingSpinner komponens
+    return <div>Loading...</div>;
   }
 
   return (
@@ -62,7 +73,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('A useAuth csak AuthProvider-en belül használható.');
   }
   return context;
 };
