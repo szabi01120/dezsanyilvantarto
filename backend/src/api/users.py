@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from dbConfig import db, User
+from src.models.user import db, User
 from datetime import datetime, timedelta
 from argon2 import PasswordHasher
 
