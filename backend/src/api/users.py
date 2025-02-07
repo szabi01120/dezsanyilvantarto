@@ -15,6 +15,7 @@ users_bp = Blueprint('users', __name__)
 @users_bp.route('/login', methods=['POST']) # POST BEJELENTKEZÉS
 def login():
     data = request.get_json()
+    print(data)
 
     if not data or 'username' not in data or 'password' not in data:
         return jsonify({'error': 'Hiányzó felhasználónév vagy jelszó!'}), 400
@@ -22,6 +23,8 @@ def login():
     user = User.query.filter_by(username=data['username']).first()
     
     if not user:
+        print('user: ', user)
+        print(ph.hash(data['password']))
         ph.hash(data['password'])
         return jsonify({'error': 'Hibás felhasználónév vagy jelszó!'}), 400
     
@@ -40,15 +43,13 @@ def login():
     if user.verify_password(data['password']):
         token = create_access_token(
             identity=str(user.id),
-            expires_delta=timedelta(hours=24) # 1 óra a token ideje
+            expires_delta=timedelta(hours=24) # 24 óra a token ideje
         )
-        print(token)
-
         return jsonify({
             'message': 'Sikeres bejeletkezés!',
             'user': user.to_dict(),
             'token': token
-        })
+        }), 200
     
     user.failed_login_attempts += 1
     if user.failed_login_attempts >= 3:
@@ -112,6 +113,7 @@ def get_user(id):
     return jsonify(user.to_dict())
 
 @users_bp.route('/add_user', methods=['POST']) # POST USER LÉTREHOZÁSA
+@jwt_required() # MUSZÁJ MOST TOKENHEZ KÖTNI, MIVEL EGYETLEN FELHASZNÁLÓJA VAN A RENDSZERNEK - NEM ENGEDÜNK MÁST BELÉPNI, CSAK ADMIN ÁLTAL LEHET
 def create_user():
     data = request.get_json()
 

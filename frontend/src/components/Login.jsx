@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from '../utils/axios';
 
@@ -9,14 +9,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login, user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,22 +22,15 @@ const Login = () => {
         password
       });
 
-      const { token, user } = response.data;
-      await login(user, token);
-
-      // Ellenőrzés konzolra
-      console.log('Token saved:', localStorage.getItem('token'));
-      console.log('Auth header:', axios.defaults.headers.common['Authorization']);
-      console.log(response.data);
       if (response.data.user && response.data.token) {
-        login(response.data.user, response.data.token);
-        navigate(location.state?.from?.pathname || '/');
+        await login(response.data.user, response.data.token);
+        navigate('/');
       } else {
         setError('Hiányzó felhasználói adatok vagy token!');
-        console.log(response.data);
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Bejelentkezési hiba történt');
+      setPassword('');
     } finally {
       setIsLoading(false);
     }

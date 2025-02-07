@@ -1,6 +1,7 @@
 // src/routes/index.jsx
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
+import PublicRoute from '../components/PublicRoute';
 import Layout from '../components/Layout';
 import { protectedRoutes } from './ProtectedRoutes';
 import { publicRoutes } from './PublicRoutes';
@@ -14,7 +15,11 @@ const AppRoutes = () => {
           <Route 
             key={path} 
             path={path} 
-            element={<Component />} 
+            element={
+              <PublicRoute>
+                <Component />
+              </PublicRoute>
+            }
           />
         ))}
 

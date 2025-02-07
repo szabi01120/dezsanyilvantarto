@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
           setUser(JSON.parse(storedUser));
           axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         }
-      }      
+      }
       setLoading(false);
     };
 

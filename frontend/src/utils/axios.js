@@ -28,7 +28,7 @@ instance.interceptors.response.use(
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       delete instance.defaults.headers.common['Authorization'];
-      window.location.href = '/login';
+      // window.location.href = '/login';
     }
     return Promise.reject(error);
   }
