@@ -87,6 +87,27 @@ def check_if_token_in_blacklist(jwt_header, jwt_payload):
     jti = jwt_payload["jti"]
     return TokenBlacklist.is_token_blacklisted(jti)
 
+@users_bp.route('/me', methods=['GET']) # GET CURRENT USER
+@jwt_required()
+def get_current_user():
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+
+        if not user:
+            return jsonify({'error': 'Nincs ilyen felhasználó!'}), 404
+        
+        return jsonify({
+            'status': 'success',
+            'data': user.to_dict()
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': 'Hiba a felhasználó lekérdezése során!',
+            'details': str(e)
+        }), 500
+
 @users_bp.route('/', methods=['GET']) # GET USERS
 @jwt_required()
 def get_users():
@@ -153,27 +174,34 @@ def create_user():
 @jwt_required()
 def update_user(id):
     current_user_id = get_jwt_identity()
-    if current_user_id != id:
-        return jsonify({'error': 'Nincs jogosultsága a művelethez!'}), 403
+    if current_user_id != str(id):
+        return jsonify({'error': 'Nincs jogosultsága művelethez!'}), 403
 
     user = User.query.get_or_404(id)
     data = request.get_json()
+    print(data)
 
     try:
-        if 'password' not in data and 'email' not in data and 'username' not in data:
-            return jsonify({'error': 'Nincs módosítandó adat!'}), 400
-
         if 'password' in data:
+            if 'current_password' not in data:
+                return jsonify({'error': 'A jelenlegi jelszó megadása kötelező!'}), 400
+            
+            if not user.verify_password(data['current_password']):
+                return jsonify({'error': 'Hibás jelenlegi jelszó!'}), 400
+
             is_strong, message = user.check_password_strength(data['password'])
             if not is_strong:
                 return jsonify({'error': message}), 400
             user.set_password(data['password'])
+        else:
+            if 'real_name' in data:
+                user.real_name = data['real_name']
 
-        if 'email' in data:
-            user.email = data['email']
+            if 'email' in data:
+                user.email = data['email']
 
-        if 'username' in data:
-            user.username = data['username']
+            # if 'username' in data:
+            #     user.username = data['username']
 
         db.session.commit()
         return jsonify(user.to_dict()), 200
