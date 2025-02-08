@@ -2,7 +2,9 @@ import { Fragment } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { SunIcon, MoonIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import logo from '../assets/logo.png';
 
 const navigation = [
@@ -20,6 +22,7 @@ export default function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const { darkMode, toggleTheme } = useTheme();
 
     const isCurrent = (path) => {
         if (path === '/') {
@@ -55,8 +58,8 @@ export default function Navbar() {
                             </div>
 
                             {/* Mobile menu button - csak bejelentkezett felhasználóknál */}
-                            {user && (
-                                <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                            <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                                {user && (
                                     <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                                         <span className="sr-only">Főmenü megnyitása</span>
                                         {open ? (
@@ -65,8 +68,8 @@ export default function Navbar() {
                                             <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
                                         )}
                                     </Disclosure.Button>
-                                </div>
-                            )}
+                                )}
+                            </div>
 
                             {/* Navigáció */}
                             {user && (
@@ -82,7 +85,6 @@ export default function Navbar() {
                                                         : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                                                     'rounded-md px-3 py-2 text-sm font-medium'
                                                 )}
-                                                aria-current={item.current ? 'page' : undefined}
                                             >
                                                 {item.name}
                                             </Link>
@@ -95,6 +97,20 @@ export default function Navbar() {
                             <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                                 {user ? (
                                     <>
+                                        {/* Theme toggle button */}
+                                        <button
+                                            type="button"
+                                            onClick={toggleTheme}
+                                            className="rounded-full bg-gray-700 dark:bg-gray-600 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800 mr-2"
+                                            title={darkMode ? 'Világos mód' : 'Sötét mód'}
+                                        >
+                                            {darkMode ? (
+                                                <SunIcon className="h-6 w-6" aria-hidden="true" />
+                                            ) : (
+                                                <MoonIcon className="h-6 w-6" aria-hidden="true" />
+                                            )}
+                                        </button>
+
                                         {/* Értesítések gomb */}
                                         <button
                                             type="button"
@@ -189,7 +205,6 @@ export default function Navbar() {
                                                 : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                                             'block rounded-md px-3 py-2 text-base font-medium'
                                         )}
-                                        aria-current={isCurrent(item.href) ? 'page' : undefined}
                                     >
                                         {item.name}
                                     </Disclosure.Button>

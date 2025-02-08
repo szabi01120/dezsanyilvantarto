@@ -3,7 +3,7 @@ import Navbar from './Navbar';
 
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen font-raleway bg-gray-100">
+    <div className="min-h-screen font-raleway bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         {children}
