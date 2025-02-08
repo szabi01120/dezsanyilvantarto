@@ -4,12 +4,13 @@ import { useState } from 'react';
 
 const Dashboard = () => {
   const [data, setData] = useState(null);
+  const [realName, setRealName] = useState(null);
 
   const fetchData = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:5000/api/users/');
       setData(response.data.data.users[1].username);
-      console.log(response.data.data.users[1].username);
+      setRealName(response.data.data.users[0].real_name);
     } catch (error) {
       console.error('An error occurred:', error);
     }
@@ -18,7 +19,7 @@ const Dashboard = () => {
   return (
     <div className="bg-white shadow-lg rounded-lg p-6">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Dashboard</h1>
-      <p className="text-gray-600">Üdvözöljük a Dezsa Nyilvántartó Rendszerben!</p>
+      <p className="text-gray-600">Üdvözöljük a Dézsa Nyilvántartó Rendszerben <b>{realName}</b>!</p>
       <div className="mt-4">
         <button 
           onClick={fetchData} 

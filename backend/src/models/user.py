@@ -10,6 +10,7 @@ ph = PasswordHasher()
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    real_name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     salt = db.Column(db.String(32), nullable=False)
@@ -85,7 +86,8 @@ class User(db.Model):
             'created_at': self.created_at.isoformat(),
             'last_login': self.last_login.isoformat() if self.last_login else None,
             'is_locked': self.is_locked,
-            'failed_login_attempts': self.failed_login_attempts
+            'failed_login_attempts': self.failed_login_attempts,
+            'real_name': self.real_name
         }
 
     @classmethod

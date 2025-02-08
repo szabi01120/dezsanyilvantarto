@@ -113,11 +113,11 @@ def get_user(id):
     return jsonify(user.to_dict())
 
 @users_bp.route('/add_user', methods=['POST']) # POST USER LÉTREHOZÁSA
-@jwt_required() # MUSZÁJ MOST TOKENHEZ KÖTNI, MIVEL EGYETLEN FELHASZNÁLÓJA VAN A RENDSZERNEK - NEM ENGEDÜNK MÁST BELÉPNI, CSAK ADMIN ÁLTAL LEHET
+# @jwt_required() # MUSZÁJ MOST TOKENHEZ KÖTNI, MIVEL EGYETLEN FELHASZNÁLÓJA VAN A RENDSZERNEK - NEM ENGEDÜNK MÁST BELÉPNI, CSAK ADMIN ÁLTAL LEHET
 def create_user():
     data = request.get_json()
 
-    required_fields = ['username', 'email', 'password']
+    required_fields = ['username', 'email', 'password', 'real_name']
     if not data or not all(field in data for field in required_fields):
         return jsonify({'error': 'Hiányzó adatok!'}), 400
     
@@ -132,7 +132,8 @@ def create_user():
 
     new_user = User(
         username=data['username'],
-        email=data['email']
+        email=data['email'],
+        real_name=data['real_name']
     )
     
     is_strong, message = new_user.check_password_strength(data['password'])
