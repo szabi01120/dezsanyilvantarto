@@ -22,20 +22,20 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">Dashboard</h1>
-      <p className="text-gray-600">Üdvözöljük a Dézsa Nyilvántartó Rendszerben <b>{realName}</b>!</p>
+    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Dashboard</h1>
+      <p className="text-gray-600 dark:text-gray-300">Üdvözöljük a Dézsa Nyilvántartó Rendszerben <b>{realName}</b>!</p>
       <div className="mt-4">
-        <button 
-          onClick={() => setShowData(!showData)} 
+        <button
+          onClick={() => setShowData(!showData)}
           className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
         >
           Adatok lekérése
         </button>
         {showData && (
           <div className="mt-4">
-            <p className="text-gray-600">Felhasználónév: <b>{data}</b></p>
-            <p className="text-gray-600">Teljes név: <b>{realName}</b></p>
+            <p className="text-gray-600 dark:text-gray-300">Felhasználónév: <b>{data}</b></p>
+            <p className="text-gray-600 dark:text-gray-300">Teljes név: <b>{realName}</b></p>
           </div>
         )}
       </div>
