@@ -2,7 +2,6 @@
 import Dashboard from '../pages/Dashboard';
 import Products from '../pages/Products';
 import Orders from '../pages/Orders';
-// import Reports from '../pages/Reports';
 import Profile from '../pages/Profile';
 
 export const protectedRoutes = [
@@ -23,8 +22,4 @@ export const protectedRoutes = [
     path: '/profile',
     component: Profile,
   },
-  // {
-  //   path: '/reports',
-  //   component: Reports,
-  // },
 ];

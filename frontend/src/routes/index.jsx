@@ -5,6 +5,7 @@ import PublicRoute from '../components/PublicRoute';
 import Layout from '../components/Layout';
 import { protectedRoutes } from './ProtectedRoutes';
 import { publicRoutes } from './PublicRoutes';
+import NotFound from '../pages/NotFound';
 
 const AppRoutes = () => {
   return (
@@ -12,9 +13,9 @@ const AppRoutes = () => {
       <Routes>
         {/* Publikus útvonalak */}
         {publicRoutes.map(({ path, component: Component }) => (
-          <Route 
-            key={path} 
-            path={path} 
+          <Route
+            key={path}
+            path={path}
             element={
               <PublicRoute>
                 <Component />
@@ -35,6 +36,14 @@ const AppRoutes = () => {
             }
           />
         ))}
+
+        {/* NotFound útvonal globálisan */}
+        <Route
+          path="*"
+          element={
+            <NotFound />
+          }
+        />
       </Routes>
     </Layout>
   );
