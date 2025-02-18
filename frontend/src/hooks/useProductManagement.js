@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ProductService } from '../services/productService';
 
 export const useProductManagement = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState('asc');
     const [searchTerm, setSearchTerm] = useState('');
@@ -15,28 +16,33 @@ export const useProductManagement = () => {
         return savedItemsPerPage ? parseInt(savedItemsPerPage, 10) : 5;
     });
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setLoading(true);
-                const fetchedProducts = await ProductService.getAllProducts();
+    const fetchProducts = useCallback(async () => {
+        try {
+            setLoading(true);
+            const fetchedProducts = await ProductService.getAllProducts();
 
-                const formattedProducts = fetchedProducts.map(product => ({
-                    ...product,
-                    acquisitionDate: product.purchase_date,
-                    acquisitionPrice: product.purchase_price
-                }));
+            const formattedProducts = fetchedProducts.map(product => ({
+                ...product,
+                acquisitionDate: product.purchase_date,
+                acquisitionPrice: product.purchase_price
+            }));
 
-                setProducts(formattedProducts);
-                setLoading(false);
-            } catch (error) {
-                setError(error);
-                setLoading(false);
-            }
-        };
-
-        fetchProducts();
+            setProducts(formattedProducts);
+            setLoading(false);
+        } catch (error) {
+            setError(error);
+            setLoading(false);
+        }
     }, []);
+
+    // Módosított useEffect, most figyeli a refreshTrigger-t
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts, refreshTrigger]);
+
+    const triggerRefresh = () => {
+        setRefreshTrigger(prev => prev + 1);
+    };
 
     // Rendezési logika
     const handleSort = (column) => {
@@ -105,6 +111,7 @@ export const useProductManagement = () => {
     return {
         products,
         setProducts,
+        triggerRefresh,
         sortColumn,
         setSortColumn,
         sortDirection,

@@ -83,7 +83,7 @@ const ProductTableDesktop = ({
       <tbody>
         {paginatedProducts.map((product) => (
           <tr
-            key={product.id}
+            key={`product-${product.id}`}
             className="hidden md:table-row border-b border-gray-200 dark:border-gray-600 
                hover:bg-gray-50 dark:hover:bg-gray-700 
                transition duration-200"
@@ -97,8 +97,8 @@ const ProductTableDesktop = ({
             <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{product.quantity}</td>
             <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{product.manufacturer}</td>
             <td className="px-4 py-3 font-semibold text-green-600 dark:text-green-400">
-              {product.acquisitionPrice
-                ? `${Number(product.acquisitionPrice).toLocaleString()} Ft`
+              {product.acquisitionPrice || product.purchase_price
+                ? `${Number(product.acquisitionPrice || product.purchase_price).toLocaleString()} Ft`
                 : 'N/A'}
             </td>
             <td className="px-4 py-3">

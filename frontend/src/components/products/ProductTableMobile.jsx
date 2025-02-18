@@ -18,8 +18,8 @@ const ProductTableMobile = ({
       <table className="w-full">
         <tbody>
           {paginatedProducts.map((product) => (
-            <tr 
-              key={product.id} 
+            <tr
+              key={`product-mobile-${product.id}`}
               className="border-b border-gray-200 dark:border-gray-600"
             >
               <td className="px-4 py-4">
@@ -62,12 +62,14 @@ const ProductTableMobile = ({
 
                   <div className="text-gray-600 dark:text-gray-400">Beszerzési ár:</div>
                   <div className="font-semibold text-green-600 dark:text-green-400">
-                    {product.acquisitionPrice.toLocaleString()} Ft
+                    {product.acquisitionPrice || product.purchase_price
+                      ? `${Number(product.acquisitionPrice || product.purchase_price).toLocaleString()} Ft`
+                      : 'N/A'}
                   </div>
-
+                  
                   <div className="text-gray-600 dark:text-gray-400">Beszerzés:</div>
                   <div className="text-gray-800 dark:text-gray-200">
-                  {product.acquisitionDate ? new Date(product.acquisitionDate).toLocaleDateString() : 'N/A'}
+                    {product.acquisitionDate ? new Date(product.acquisitionDate).toLocaleDateString() : 'N/A'}
                   </div>
                 </div>
               </td>

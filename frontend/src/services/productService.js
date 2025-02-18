@@ -12,7 +12,7 @@ export const ProductService = {
     }
   },
 
-  // Egyedi termék lekérése
+  // termék lekérése ID alapján
   getProductById: async (id) => {
     try {
       const response = await axios.get(`/products/${id}`);

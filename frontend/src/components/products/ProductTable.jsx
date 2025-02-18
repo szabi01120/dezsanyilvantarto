@@ -13,7 +13,8 @@ const ProductTable = ({
     currentPage,
     onEditProduct,
     onDeleteProduct,
-    updateItemsPerPage
+    updateItemsPerPage,
+    onAddProduct
 }) => {
     const hasProducts = paginatedProducts && paginatedProducts.length > 0;
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -25,6 +26,7 @@ const ProductTable = ({
                     Termékek
                 </h1>
                 <button
+                    onClick={onAddProduct}
                     className="w-full sm:w-auto bg-blue-500 text-white px-4 py-2 rounded 
                      hover:bg-blue-600 transition duration-200 
                      dark:bg-blue-600 dark:hover:bg-blue-500"
