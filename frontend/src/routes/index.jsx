@@ -1,5 +1,5 @@
 // src/routes/index.jsx
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
 import PublicRoute from '../components/PublicRoute';
 import Layout from '../components/Layout';
@@ -7,10 +7,18 @@ import { protectedRoutes } from './ProtectedRoutes';
 import { publicRoutes } from './PublicRoutes';
 import NotFound from '../pages/NotFound';
 
-const AppRoutes = () => {
+const Root = () => {
   return (
     <Layout>
-      <Routes>
+      <Outlet />
+    </Layout>
+  );
+};
+
+const AppRoutes = () => {
+  return (
+    <Routes>
+      <Route element={<Root />}>
         {/* Publikus útvonalak */}
         {publicRoutes.map(({ path, component: Component }) => (
           <Route
@@ -40,12 +48,10 @@ const AppRoutes = () => {
         {/* NotFound útvonal globálisan */}
         <Route
           path="*"
-          element={
-            <NotFound />
-          }
+          element={<NotFound />}
         />
-      </Routes>
-    </Layout>
+      </Route>
+    </Routes>
   );
 };
 

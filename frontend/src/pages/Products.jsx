@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useProductManagement } from '../hooks/useProductManagement';
-import { initialProductData } from '../data/initialProducts';
+import { ProductService } from '../services/productService';
 import ProductTable from '../components/products/ProductTable';
 import SearchAndFilterBar from '../components/ui/SearchAndFilterBar';
 import EditProductModal from '../components/products/EditProductModal';
 import DeleteConfirmModal from '../components/products/DeleteConfirmModal';
+import Spinner from '../components/ui/Spinner';
+import ErrorMessage from '../components/ui/ErrorMessage';
 
 const Products = () => {
   const {
@@ -23,21 +25,59 @@ const Products = () => {
     setSearchTerm,
     typeFilter,
     setTypeFilter,
-  } = useProductManagement(initialProductData);
+    loading,
+    error
+  } = useProductManagement();
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [deleteConfirmProduct, setDeleteConfirmProduct] = useState(null);
 
-  const handleEditProduct = (editedProduct) => {
-    setProducts(products.map(p => 
-      p.id === editedProduct.id ? editedProduct : p
-    ));
+  const handleEditProduct = async (editedProduct) => {
+    try {
+      // Backend frissítés
+      const updatedProduct = await ProductService.updateProduct(
+        editedProduct.id, 
+        {
+          name: editedProduct.name,
+          type: editedProduct.type,
+          quantity: editedProduct.quantity,
+          manufacturer: editedProduct.manufacturer,
+          purchase_price: editedProduct.acquisitionPrice
+        }
+      );
+
+      // Frontend state frissítés
+      setProducts(products.map(p => 
+        p.id === updatedProduct.id 
+          ? {
+              ...updatedProduct, 
+              acquisitionDate: updatedProduct.purchase_date,
+              acquisitionPrice: updatedProduct.purchase_price
+            } 
+          : p
+      ));
+      
+      setSelectedProduct(null);
+    } catch (error) {
+      console.error('Hiba a termék frissítésekor:', error);
+    }
   };
 
-  const handleDeleteProduct = () => {
-    setProducts(products.filter(p => p.id !== deleteConfirmProduct.id));
-    setDeleteConfirmProduct(null);
+  const handleDeleteProduct = async () => {
+    try {
+      // Backend törlés
+      await ProductService.deleteProduct(deleteConfirmProduct.id);
+      
+      // Frontend state frissítés
+      setProducts(products.filter(p => p.id !== deleteConfirmProduct.id));
+      setDeleteConfirmProduct(null);
+    } catch (error) {
+      console.error('Hiba a termék törlésekor:', error);
+    }
   };
+
+  if (loading) return <Spinner />;
+  if (error) return <ErrorMessage error={error} />;
 
   return (
     <div className="container mx-auto px-4 py-8">

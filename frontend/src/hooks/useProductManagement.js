@@ -1,7 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { ProductService } from '../services/productService';
 
-export const useProductManagement = (initialProducts) => {
-    const [products, setProducts] = useState(initialProducts);
+export const useProductManagement = () => {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState('asc');
     const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +14,29 @@ export const useProductManagement = (initialProducts) => {
         const savedItemsPerPage = localStorage.getItem('itemsPerPage');
         return savedItemsPerPage ? parseInt(savedItemsPerPage, 10) : 5;
     });
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+                const fetchedProducts = await ProductService.getAllProducts();
+
+                const formattedProducts = fetchedProducts.map(product => ({
+                    ...product,
+                    acquisitionDate: product.purchase_date,
+                    acquisitionPrice: product.purchase_price
+                }));
+
+                setProducts(formattedProducts);
+                setLoading(false);
+            } catch (error) {
+                setError(error);
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
 
     // Rendezési logika
     const handleSort = (column) => {

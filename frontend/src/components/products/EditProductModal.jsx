@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { ProductService } from '../../services/productService';
 
 const EditProductModal = ({ product, onClose, onSave }) => {
-  const [editedProduct, setEditedProduct] = useState({ ...product });
+  const [editedProduct, setEditedProduct] = useState({
+    ...product,
+    // Átnevezzük a mezőket a frontend által elvárt névre
+    acquisitionDate: product.purchase_date,
+    acquisitionPrice: product.purchase_price
+  });
 
   // Automatikus state frissítés, ha a termék változik
   useEffect(() => {
-    setEditedProduct({ ...product });
+    setEditedProduct({ 
+      ...product,
+      acquisitionDate: product.purchase_date,
+      acquisitionPrice: product.purchase_price
+    });
   }, [product]);
 
   const handleInputChange = (e) => {
@@ -17,8 +27,14 @@ const EditProductModal = ({ product, onClose, onSave }) => {
   };
 
   const handleSave = () => {
-    onSave(editedProduct);
-    onClose();
+    // Backend által elvárt formátumra alakítjuk a terméket
+    const productToSave = {
+      ...editedProduct,
+      purchase_date: editedProduct.acquisitionDate,
+      purchase_price: editedProduct.acquisitionPrice
+    };
+
+    onSave(productToSave);
   };
 
   return (

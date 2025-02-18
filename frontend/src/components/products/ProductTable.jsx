@@ -15,6 +15,9 @@ const ProductTable = ({
     onDeleteProduct,
     updateItemsPerPage
 }) => {
+    const hasProducts = paginatedProducts && paginatedProducts.length > 0;
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
     return (
         <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
             <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
@@ -31,23 +34,23 @@ const ProductTable = ({
                 </button>
             </div>
 
-            <div className="overflow-x-auto">
-                <ProductTableDesktop
-                    paginatedProducts={paginatedProducts}
-                    sortColumn={sortColumn}
-                    sortDirection={sortDirection}
-                    handleSort={handleSort}
-                    onEditProduct={onEditProduct}
-                    onDeleteProduct={onDeleteProduct}
-                />
-                <ProductTableMobile
-                    paginatedProducts={paginatedProducts}
-                    onEditProduct={onEditProduct}
-                    onDeleteProduct={onDeleteProduct}
-                />
-            </div>
-
-            {paginatedProducts.length === 0 && (
+            {hasProducts ? (
+                <>
+                    <ProductTableDesktop
+                        paginatedProducts={paginatedProducts}
+                        sortColumn={sortColumn}
+                        sortDirection={sortDirection}
+                        handleSort={handleSort}
+                        onEditProduct={onEditProduct}
+                        onDeleteProduct={onDeleteProduct}
+                    />
+                    <ProductTableMobile
+                        paginatedProducts={paginatedProducts}
+                        onEditProduct={onEditProduct}
+                        onDeleteProduct={onDeleteProduct}
+                    />
+                </>
+            ) : (
                 <div className="text-center py-6 text-gray-500 dark:text-gray-400">
                     Nincsenek termékek
                 </div>
@@ -71,10 +74,10 @@ const ProductTable = ({
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
                         className="px-4 py-2 border rounded 
-            disabled:opacity-50 
-            bg-blue-500 text-white 
-            hover:bg-blue-600 
-            dark:bg-blue-600 dark:hover:bg-blue-500"
+                        disabled:opacity-50 
+                        bg-blue-500 text-white 
+                        hover:bg-blue-600 
+                        dark:bg-blue-600 dark:hover:bg-blue-500"
                     >
                         Előző
                     </button>
@@ -86,10 +89,10 @@ const ProductTable = ({
                         )}
                         disabled={currentPage >= Math.ceil(filteredProducts.length / itemsPerPage)}
                         className="px-4 py-2 border rounded 
-            disabled:opacity-50
-            bg-blue-500 text-white 
-            hover:bg-blue-600 
-            dark:bg-blue-600 dark:hover:bg-blue-500"
+                        disabled:opacity-50
+                        bg-blue-500 text-white 
+                        hover:bg-blue-600 
+                        dark:bg-blue-600 dark:hover:bg-blue-500"
                     >
                         Következő
                     </button>

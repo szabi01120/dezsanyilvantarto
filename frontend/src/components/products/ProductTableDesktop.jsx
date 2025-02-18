@@ -9,62 +9,70 @@ const ProductTableDesktop = ({
   onEditProduct,
   onDeleteProduct
 }) => {
+  if (!paginatedProducts || paginatedProducts.length === 0) {
+    return (
+      <div className="text-center text-gray-500 dark:text-gray-400 p-4">
+        Nincs megjeleníthető elem.
+      </div>
+    );
+  }
+
   return (
     <table className="w-full">
       <thead className="hidden md:table-header-group">
         <tr className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-          <SortableHeader 
-            column="id" 
-            sortColumn={sortColumn} 
-            sortDirection={sortDirection} 
+          <SortableHeader
+            column="id"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
             handleSort={handleSort}
           >
             ID
           </SortableHeader>
-          <SortableHeader 
-            column="name" 
-            sortColumn={sortColumn} 
-            sortDirection={sortDirection} 
+          <SortableHeader
+            column="name"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
             handleSort={handleSort}
           >
             Név
           </SortableHeader>
-          <SortableHeader 
-            column="acquisitionDate" 
-            sortColumn={sortColumn} 
-            sortDirection={sortDirection} 
+          <SortableHeader
+            column="acquisitionDate"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
             handleSort={handleSort}
           >
             Beszerzés
           </SortableHeader>
-          <SortableHeader 
-            column="type" 
-            sortColumn={sortColumn} 
-            sortDirection={sortDirection} 
+          <SortableHeader
+            column="type"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
             handleSort={handleSort}
           >
             Típus
           </SortableHeader>
-          <SortableHeader 
-            column="quantity" 
-            sortColumn={sortColumn} 
-            sortDirection={sortDirection} 
+          <SortableHeader
+            column="quantity"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
             handleSort={handleSort}
           >
             Mennyiség
           </SortableHeader>
-          <SortableHeader 
-            column="manufacturer" 
-            sortColumn={sortColumn} 
-            sortDirection={sortDirection} 
+          <SortableHeader
+            column="manufacturer"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
             handleSort={handleSort}
           >
             Gyártó
           </SortableHeader>
-          <SortableHeader 
-            column="acquisitionPrice" 
-            sortColumn={sortColumn} 
-            sortDirection={sortDirection} 
+          <SortableHeader
+            column="acquisitionPrice"
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
             handleSort={handleSort}
           >
             Beszerzési ár
@@ -82,12 +90,16 @@ const ProductTableDesktop = ({
           >
             <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{product.id}</td>
             <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{product.name}</td>
-            <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{product.acquisitionDate}</td>
+            <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+              {product.acquisitionDate ? new Date(product.acquisitionDate).toLocaleDateString() : 'N/A'}
+            </td>
             <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{product.type}</td>
             <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{product.quantity}</td>
             <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{product.manufacturer}</td>
             <td className="px-4 py-3 font-semibold text-green-600 dark:text-green-400">
-              {product.acquisitionPrice.toLocaleString()} Ft
+              {product.acquisitionPrice
+                ? `${Number(product.acquisitionPrice).toLocaleString()} Ft`
+                : 'N/A'}
             </td>
             <td className="px-4 py-3">
               <div className="flex space-x-2">
