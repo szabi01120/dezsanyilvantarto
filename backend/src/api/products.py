@@ -4,45 +4,82 @@ from src.models.products import Products
 
 products_bp = Blueprint('products', __name__)
 
-@products_bp.route('/products', methods=['GET'])
+@products_bp.route('/get_products', methods=['GET'])
 def get_all_products():
-    products = Products.query.all()
-    return jsonify([p.to_dict() for p in products]), 200
+    try:
+        products = Products.query.all()
+        return jsonify([p.to_dict() for p in products]), 200
+    except Exception as e:
+        return jsonify({
+            'message': 'Hiba a termékek lekérdezésekor.',
+            'error': str(e)
+        }), 400
 
-@products_bp.route('/products', methods=['POST'])
+@products_bp.route('/add_product', methods=['POST'])
 def create_product():
     data = request.get_json()
-    new_product = Products(
-        name=data['name'],
-        type=data['type'],
-        quantity=data['quantity'],
-        manufacturer=data['manufacturer'],
-        purchase_price=data['purchase_price']
-    )
-    db.session.add(new_product)
-    db.session.commit()
-    return jsonify(new_product.to_dict()), 201
+    try:
+        new_product = Products(
+            name=data['name'],
+            type=data['type'],
+            quantity=data['quantity'],
+            manufacturer=data['manufacturer'],
+            purchase_price=data['purchase_price']
+        )
+        db.session.add(new_product)
+        db.session.commit()
+        return jsonify({
+            'message': 'Termék sikeresen hozzáadva.',
+            'product': new_product.to_dict()
+        }), 201
+    except Exception as e:
+        return jsonify({
+            'message': 'Hiba a termék hozzáadásakor.',
+            'error': str(e)
+        }), 400
+    
 
-@products_bp.route('/products/<int:product_id>', methods=['GET'])
+@products_bp.route('/<int:product_id>', methods=['GET'])
 def get_product(product_id):
-    product = Products.query.get_or_404(product_id)
-    return jsonify(product.to_dict()), 200
+    try:
+        product = Products.query.get_or_404(product_id)
+        return jsonify(product.to_dict()), 200
+    except Exception as e:
+        return jsonify({
+            'message': 'Hiba a termék lekérdezésekor.',
+            'error': str(e)
+        }), 400
 
-@products_bp.route('/products/<int:product_id>', methods=['PUT'])
+@products_bp.route('/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
     product = Products.query.get_or_404(product_id)
     data = request.get_json()
-    product.name = data.get('name', product.name)
-    product.type = data.get('type', product.type)
-    product.quantity = data.get('quantity', product.quantity)
-    product.manufacturer = data.get('manufacturer', product.manufacturer)
-    product.purchase_price = data.get('purchase_price', product.purchase_price)
-    db.session.commit()
-    return jsonify(product.to_dict()), 200
+    try:
+        product.name = data.get('name', product.name)
+        product.type = data.get('type', product.type)
+        product.quantity = data.get('quantity', product.quantity)
+        product.manufacturer = data.get('manufacturer', product.manufacturer)
+        product.purchase_price = data.get('purchase_price', product.purchase_price)
+        
+        db.session.commit() 
+        return jsonify(product.to_dict()), 200
+    except Exception as e:
+        return jsonify({
+            'message': 'Hiba a termék frissítésekor.',
+            'error': str(e)
+        }), 400
 
-@products_bp.route('/products/<int:product_id>', methods=['DELETE'])
+@products_bp.route('/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     product = Products.query.get_or_404(product_id)
-    db.session.delete(product)
-    db.session.commit()
-    return '', 204
+    try:
+        db.session.delete(product)
+        db.session.commit()
+        return jsonify({
+            'message': 'Termék sikeresen törölve.'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'message': 'Hiba a termék törlésekor.',
+            'error': str(e)
+        }), 400

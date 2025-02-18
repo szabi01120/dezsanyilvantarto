@@ -4,7 +4,7 @@ from src.extensions.database import db
 class Products(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    purchase_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    purchase_date = db.Column(db.Date, default=datetime.utcnow().date(), nullable=False)
     type = db.Column(db.String(80), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     manufacturer = db.Column(db.String(80), nullable=False)
