@@ -45,7 +45,8 @@ const Products = () => {
           type: editedProduct.type,
           quantity: editedProduct.quantity,
           manufacturer: editedProduct.manufacturer,
-          purchase_price: editedProduct.acquisitionPrice
+          purchase_price: editedProduct.acquisitionPrice,
+          purchase_date: editedProduct.acquisitionDate
         }
       );
 

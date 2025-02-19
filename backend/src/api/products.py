@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from datetime import datetime
 from src.extensions.database import db
 from src.models.products import Products
 
@@ -56,6 +57,15 @@ def update_product(product_id):
     product = Products.query.get_or_404(product_id)
     data = request.get_json()
     try:
+        if 'purchase_date' in data:
+            try:
+                purchase_date = datetime.strptime(data['purchase_date'], '%Y-%m-%d').date()
+                product.purchase_date = purchase_date
+            except ValueError:
+                return jsonify({
+                    'message': 'Helytelen dátum formátum. Használja az éééé-hh-nn formátumot.'
+                }), 400
+
         product.name = data.get('name', product.name)
         product.type = data.get('type', product.type)
         product.quantity = data.get('quantity', product.quantity)

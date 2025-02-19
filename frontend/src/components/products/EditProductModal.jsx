@@ -1,11 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { ProductService } from '../../services/productService';
 
 const EditProductModal = ({ product, onClose, onSave }) => {
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
+    // Ha más formátumú dátum érkezik
+    const date = new Date(dateString);
+    
+    // Ellenőrizzük, hogy érvényes
+    if (isNaN(date.getTime())) {
+      console.warn('Érvénytelen dátum:', dateString);
+      return '';
+    }
+    
+    return date.toISOString().split('T')[0];
+  };
+
   const [editedProduct, setEditedProduct] = useState({
     ...product,
     // Átnevezzük a mezőket a frontend által elvárt névre
-    acquisitionDate: product.purchase_date,
+    acquisitionDate: formatDateForInput(product.purchase_date),
     acquisitionPrice: product.purchase_price
   });
 
@@ -13,7 +31,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
   useEffect(() => {
     setEditedProduct({ 
       ...product,
-      acquisitionDate: product.purchase_date,
+      acquisitionDate: formatDateForInput(product.purchase_date),
       acquisitionPrice: product.purchase_price
     });
   }, [product]);

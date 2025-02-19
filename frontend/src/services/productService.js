@@ -38,6 +38,8 @@ export const ProductService = {
   updateProduct: async (id, productData) => {
     try {
       const response = await axios.put(`/products/${id}`, productData);
+      console.log('response:', response);
+      console.log('productData:', productData);
       return response.data;
     } catch (error) {
       console.error(`Hiba a(z) ${id} azonosítójú termék frissítésekor:`, error);
