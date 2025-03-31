@@ -17,7 +17,7 @@ const ProductTable = ({
     onAddProduct
 }) => {
     const hasProducts = paginatedProducts && paginatedProducts.length > 0;
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    // const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
     return (
         <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
