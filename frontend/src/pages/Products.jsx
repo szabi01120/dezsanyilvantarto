@@ -93,10 +93,10 @@ const Products = () => {
         acquisitionPrice: addedProduct.purchase_price
       };
 
-      triggerRefresh();
-
       setProducts([...products, formattedProduct]);
       setIsAddModalOpen(false);
+
+      triggerRefresh();
     } catch (error) {
       console.error('Hiba az új termék hozzáadásakor:', error);
     }
@@ -113,6 +113,7 @@ const Products = () => {
         typeFilter={typeFilter}
         setTypeFilter={setTypeFilter}
         setCurrentPage={setCurrentPage}
+        refreshTrigger={triggerRefresh}
       />
 
       <ProductTable

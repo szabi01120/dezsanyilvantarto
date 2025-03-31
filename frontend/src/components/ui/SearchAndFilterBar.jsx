@@ -6,7 +6,8 @@ const SearchAndFilterBar = ({
   setSearchTerm,
   typeFilter,
   setTypeFilter,
-  setCurrentPage
+  setCurrentPage,
+  refreshTrigger
 }) => {
   const [productTypes, setProductTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +36,7 @@ const SearchAndFilterBar = ({
     };
 
     fetchProductTypes();
-  }, []);
+  }, [refreshTrigger]);
 
   return (
     <div className="mb-4 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
