@@ -3,6 +3,7 @@ import Dashboard from '../pages/Dashboard';
 import Products from '../pages/Products';
 import Orders from '../pages/Orders';
 import Profile from '../pages/Profile';
+import Quotation from '../pages/Quotation';
 
 export const protectedRoutes = [
   {
@@ -21,5 +22,9 @@ export const protectedRoutes = [
   {
     path: '/profile',
     component: Profile,
+  },
+  {
+    path: '/quotation',
+    component: Quotation,
   },
 ];

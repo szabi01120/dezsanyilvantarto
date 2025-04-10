@@ -11,7 +11,7 @@ const navigation = [
     { name: 'Dashboard', href: '/', current: true },
     { name: 'Termékek', href: '/products', current: false },
     { name: 'Megrendelések', href: '/orders', current: false },
-    { name: 'Ajánlat', href: '/reports', current: false },
+    { name: 'Ajánlat', href: '/quotation', current: false },
 ];
 
 function classNames(...classes) {
