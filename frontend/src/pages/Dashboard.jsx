@@ -2,7 +2,7 @@ import React from 'react';
 import axios from '../utils/axios';
 import { useState, useEffect, useRef } from 'react';
 // Importok
-import { Line, Pie, Bar, Doughnut } from 'react-chartjs-2';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,

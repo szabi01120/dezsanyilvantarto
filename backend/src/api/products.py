@@ -26,7 +26,8 @@ def create_product():
             type=data['type'],
             quantity=data['quantity'],
             manufacturer=data['manufacturer'],
-            purchase_price=data['purchase_price']
+            purchase_price=data['purchase_price'],
+            currency=data['currency']
         )
         db.session.add(new_product)
         db.session.commit()

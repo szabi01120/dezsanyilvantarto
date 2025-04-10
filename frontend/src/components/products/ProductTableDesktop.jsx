@@ -98,7 +98,7 @@ const ProductTableDesktop = ({
             <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{product.manufacturer}</td>
             <td className="px-4 py-3 font-semibold text-green-600 dark:text-green-400">
               {product.acquisitionPrice || product.purchase_price
-                ? `${Number(product.acquisitionPrice || product.purchase_price).toLocaleString()} Ft`
+                ? `${Number(product.acquisitionPrice || product.purchase_price).toLocaleString()} ${product.currency || 'Ft'}`
                 : 'N/A'}
             </td>
             <td className="px-4 py-3">

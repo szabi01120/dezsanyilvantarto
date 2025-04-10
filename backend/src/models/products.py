@@ -9,6 +9,7 @@ class Products(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     manufacturer = db.Column(db.String(80), nullable=False)
     purchase_price = db.Column(db.Float, nullable=False)
+    currency = db.Column(db.String(3), default="HUF", nullable=False)
 
     def to_dict(self):
         return {
@@ -18,5 +19,6 @@ class Products(db.Model):
             'type': self.type,
             'quantity': self.quantity,
             'manufacturer': self.manufacturer,
-            'purchase_price': self.purchase_price
+            'purchase_price': self.purchase_price,
+            'currency': self.currency
         }

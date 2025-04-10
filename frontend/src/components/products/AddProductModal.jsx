@@ -7,7 +7,8 @@ const AddProductModal = ({ onClose, onSave }) => {
     type: '',
     quantity: '',
     manufacturer: '',
-    purchase_price: ''
+    purchase_price: '',
+    currency: ''
   });
 
   const handleChange = (e) => {
@@ -20,10 +21,10 @@ const AddProductModal = ({ onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validáció
-    const { name, type, quantity, manufacturer, purchase_price } = productData;
-    if (!name || !type || !quantity || !manufacturer || !purchase_price) {
+    const { name, type, quantity, manufacturer, purchase_price, currency } = productData;
+    if (!name || !type || !quantity || !manufacturer || !purchase_price || !currency) {
       alert('Kérem töltsön ki minden mezőt!');
       return;
     }
@@ -31,7 +32,8 @@ const AddProductModal = ({ onClose, onSave }) => {
     onSave({
       ...productData,
       quantity: Number(quantity),
-      purchase_price: Number(purchase_price)
+      purchase_price: Number(purchase_price),
+      currency: currency.toUpperCase()
     });
   };
 
@@ -104,7 +106,7 @@ const AddProductModal = ({ onClose, onSave }) => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 dark:text-gray-300 mb-2">
-              Beszerzési ár (Ft)
+              Beszerzési ár
             </label>
             <input
               type="number"
@@ -116,6 +118,25 @@ const AddProductModal = ({ onClose, onSave }) => {
               dark:text-white"
               required
             />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 dark:text-gray-300 mb-2">
+              Pénznem
+            </label>
+            <select
+              name="currency"
+              value={productData.currency}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded 
+                        dark:bg-gray-700 dark:border-gray-600 
+                        dark:text-white"
+              required
+            >
+              <option value="">Válassz...</option>
+              <option value="HUF">HUF</option>
+              <option value="EUR">EUR</option>
+              <option value="USD">USD</option>
+            </select>
           </div>
           <div className="flex justify-end space-x-2">
             <button
