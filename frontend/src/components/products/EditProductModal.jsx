@@ -3,20 +3,20 @@ import React, { useState, useEffect } from 'react';
 const EditProductModal = ({ product, onClose, onSave }) => {
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
-    
+
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       return dateString;
     }
-    
+
     // Ha más formátumú dátum érkezik
     const date = new Date(dateString);
-    
+
     // Ellenőrizzük, hogy érvényes
     if (isNaN(date.getTime())) {
       console.warn('Érvénytelen dátum:', dateString);
       return '';
     }
-    
+
     return date.toISOString().split('T')[0];
   };
 
@@ -29,7 +29,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
 
   // Automatikus state frissítés, ha a termék változik
   useEffect(() => {
-    setEditedProduct({ 
+    setEditedProduct({
       ...product,
       acquisitionDate: formatDateForInput(product.purchase_date),
       acquisitionPrice: product.purchase_price
@@ -156,14 +156,33 @@ const EditProductModal = ({ product, onClose, onSave }) => {
                 value={editedProduct.acquisitionPrice}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-20"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 dark:text-gray-400">Ft</span>
+                <span className="text-gray-500 dark:text-gray-400">{editedProduct.currency}</span>
               </div>
             </div>
           </div>
         </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-5">
+              Pénznem
+            </label>
+            <select
+              name="currency"
+              value={editedProduct.currency}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded 
+                        dark:bg-gray-700 dark:border-gray-600 
+                        dark:text-white"
+              required
+            >
+              <option value="">Pénznem</option>
+              <option value="HUF">HUF</option>
+              <option value="EUR">EUR</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
 
         <div className="flex justify-end space-x-4 mt-6">
           <button

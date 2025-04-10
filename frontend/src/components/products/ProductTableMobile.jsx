@@ -63,7 +63,7 @@ const ProductTableMobile = ({
                   <div className="text-gray-600 dark:text-gray-400">Beszerzési ár:</div>
                   <div className="font-semibold text-green-600 dark:text-green-400">
                     {product.acquisitionPrice || product.purchase_price
-                      ? `${Number(product.acquisitionPrice || product.purchase_price).toLocaleString()} Ft`
+                      ? `${Number(product.acquisitionPrice || product.purchase_price).toLocaleString()} ${product.currency || 'Ft'}`
                       : 'N/A'}
                   </div>
                   

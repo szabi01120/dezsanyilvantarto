@@ -132,7 +132,7 @@ const AddProductModal = ({ onClose, onSave }) => {
                         dark:text-white"
               required
             >
-              <option value="">Válassz...</option>
+              <option value="">Pénznem</option>
               <option value="HUF">HUF</option>
               <option value="EUR">EUR</option>
               <option value="USD">USD</option>

@@ -46,7 +46,8 @@ const Products = () => {
           quantity: editedProduct.quantity,
           manufacturer: editedProduct.manufacturer,
           purchase_price: editedProduct.acquisitionPrice,
-          purchase_date: editedProduct.acquisitionDate
+          purchase_date: editedProduct.acquisitionDate,
+          currency: editedProduct.currency.toUpperCase()
         }
       );
 

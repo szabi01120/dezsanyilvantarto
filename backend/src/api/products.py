@@ -72,6 +72,7 @@ def update_product(product_id):
         product.quantity = data.get('quantity', product.quantity)
         product.manufacturer = data.get('manufacturer', product.manufacturer)
         product.purchase_price = data.get('purchase_price', product.purchase_price)
+        product.currency = data.get('currency', product.currency)
         
         db.session.commit() 
         return jsonify(product.to_dict()), 200
