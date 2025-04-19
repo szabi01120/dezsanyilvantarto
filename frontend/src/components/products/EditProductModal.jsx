@@ -55,6 +55,22 @@ const EditProductModal = ({ product, onClose, onSave }) => {
     onSave(productToSave);
   };
 
+  // Validációs függvény
+  const isFormValid = () => {
+    return (
+      editedProduct.name &&
+      editedProduct.acquisitionDate &&
+      editedProduct.type &&
+      editedProduct.quantity !== null &&
+      editedProduct.quantity !== '' &&
+      editedProduct.manufacturer &&
+      editedProduct.acquisitionPrice !== null &&
+      editedProduct.acquisitionPrice !== '' &&
+      editedProduct.currency
+    );
+  };
+
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4 p-6">
@@ -72,6 +88,13 @@ const EditProductModal = ({ product, onClose, onSave }) => {
           </button>
         </div>
 
+        {/* Validáció */}
+        {!isFormValid() && (
+          <div className="mb-4 p-3 bg-red-200 dark:bg-red-500 text-red-800 dark:text-red-200 rounded-md">
+            Kérjük, tölts ki minden mezőt a mentés előtt!
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -82,8 +105,9 @@ const EditProductModal = ({ product, onClose, onSave }) => {
               name="name"
               value={editedProduct.name}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       ${!editedProduct.name ? 'border-red-500 dark:border-red-500' : ''}`}
               required
             />
           </div>
@@ -97,8 +121,10 @@ const EditProductModal = ({ product, onClose, onSave }) => {
               name="acquisitionDate"
               value={editedProduct.acquisitionDate}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       ${!editedProduct.acquisitionDate ? 'border-red-500 dark:border-red-500' : ''}`}
+              required
             />
           </div>
 
@@ -106,16 +132,16 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Típus
             </label>
-            <select
+            <input
+              type="text"
               name="type"
               value={editedProduct.type}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="Elektronika">Elektronika</option>
-              <option value="Mobileszköz">Mobileszköz</option>
-            </select>
+              className={`w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       ${!editedProduct.acquisitionDate ? 'border-red-500 dark:border-red-500' : ''}`}
+              required
+            />
           </div>
 
           <div>
@@ -127,8 +153,10 @@ const EditProductModal = ({ product, onClose, onSave }) => {
               name="quantity"
               value={editedProduct.quantity}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       ${editedProduct.quantity === '' || editedProduct.quantity === null ? 'border-red-500 dark:border-red-500' : ''}`}
+              required
             />
           </div>
 
@@ -141,8 +169,9 @@ const EditProductModal = ({ product, onClose, onSave }) => {
               name="manufacturer"
               value={editedProduct.manufacturer}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       ${!editedProduct.manufacturer ? 'border-red-500 dark:border-red-500' : ''}`}
               required
             />
           </div>
@@ -157,8 +186,10 @@ const EditProductModal = ({ product, onClose, onSave }) => {
                 name="acquisitionPrice"
                 value={editedProduct.acquisitionPrice}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
-                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-20"
+                className={`w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-20
+                         ${editedProduct.acquisitionPrice === '' || editedProduct.acquisitionPrice === null ? 'border-red-500 dark:border-red-500' : ''}`}
+                required
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <span className="text-gray-500 dark:text-gray-400">{editedProduct.currency}</span>
@@ -166,37 +197,42 @@ const EditProductModal = ({ product, onClose, onSave }) => {
             </div>
           </div>
         </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-5">
-              Pénznem
-            </label>
-            <select
-              name="currency"
-              value={editedProduct.currency}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded 
-                        dark:bg-gray-700 dark:border-gray-600 
-                        dark:text-white"
-              required
-            >
-              <option value="HUF">HUF</option>
-              <option value="EUR">EUR</option>
-              <option value="USD">USD</option>
-            </select>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 mt-5">
+            Pénznem
+          </label>
+          <select
+            name="currency"
+            value={editedProduct.currency}
+            onChange={handleInputChange}
+            className={`w-full px-3 py-2 border rounded 
+                      dark:bg-gray-700 dark:border-gray-600 
+                      dark:text-white
+                      ${!editedProduct.currency ? 'border-red-500 dark:border-red-500' : ''}`}
+            required
+          >
+            <option value="">Válassz pénznemet</option>
+            <option value="HUF">HUF</option>
+            <option value="EUR">EUR</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
 
         <div className="flex justify-end space-x-4 mt-6">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-md 
-                       hover:bg-gray-300 dark:hover:bg-gray-500 transition duration-200"
+                     hover:bg-gray-300 dark:hover:bg-gray-500 transition duration-200"
           >
             Mégsem
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md 
-                       hover:bg-blue-600 transition duration-200"
+            disabled={!isFormValid()}
+            className={`px-4 py-2 rounded-md transition duration-200
+                      ${isFormValid()
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-blue-300 text-gray-100 cursor-not-allowed dark:bg-blue-800'}`}
           >
             Mentés
           </button>
