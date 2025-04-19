@@ -84,6 +84,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
             />
           </div>
 
@@ -142,6 +143,7 @@ const EditProductModal = ({ product, onClose, onSave }) => {
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white 
                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
             />
           </div>
 
@@ -177,7 +179,6 @@ const EditProductModal = ({ product, onClose, onSave }) => {
                         dark:text-white"
               required
             >
-              <option value="">Pénznem</option>
               <option value="HUF">HUF</option>
               <option value="EUR">EUR</option>
               <option value="USD">USD</option>
