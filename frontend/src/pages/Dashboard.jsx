@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from '../utils/axios';
 import { useState, useEffect, useRef } from 'react';
+import { ProductService } from '../services/productService';
 // Importok
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
@@ -103,20 +104,39 @@ const GoalProgress = () => {
 };
 
 // Kedvenc termékek komponens szívezhetők
-const FavoriteProducts = () => {
-  const [favorites, setFavorites] = useState([
-    { id: 1, name: 'Lenovo ThinkPad X1', favorite: true, price: '539,000 Ft', stock: 12 },
-    { id: 2, name: 'iPhone 14 Pro', favorite: true, price: '489,000 Ft', stock: 8 },
-    { id: 3, name: 'Samsung Galaxy Tab S8', favorite: true, price: '279,000 Ft', stock: 15 },
-    { id: 4, name: 'LG UltraWide Monitor', favorite: false, price: '129,000 Ft', stock: 6 },
-    { id: 5, name: 'Sony WH-1000XM4', favorite: false, price: '119,000 Ft', stock: 22 }
-  ]);
+const FavoriteProducts = ({ products }) => {
+  const [favorites, setFavorites] = useState([]);
+
+  useEffect(() => {
+    if (products && products.length > 0) {
+      // Vegyünk maximum 5 terméket példának
+      const productSample = products.slice(0, 5).map(product => ({
+        id: product.id,
+        name: product.name,
+        favorite: Math.random() > 0.5, // Véletlenszerűen kedvenc vagy sem
+        price: `${product.purchase_price.toLocaleString()} ${product.currency}`,
+        stock: product.quantity
+      }));
+      setFavorites(productSample);
+    }
+  }, [products]);
 
   const toggleFavorite = (id) => {
     setFavorites(favorites.map(product => 
       product.id === id ? {...product, favorite: !product.favorite} : product
     ));
   };
+
+  if (favorites.length === 0) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <h2 className="font-semibold text-lg mb-4 text-gray-800 dark:text-white">Kiemelt Termékek</h2>
+        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+          Betöltés...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
@@ -167,8 +187,148 @@ const Dashboard = () => {
   const [realName, setRealName] = useState(null);
   const [showData, setShowData] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [productStats, setProductStats] = useState({
+    totalProducts: 0,
+    lowStock: 0, 
+    types: {}
+  });
   
-  // Példa adatok
+  // Adatok lekérése
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        // API felhasználói adatok
+        const userResponse = await axios.get('/users/');
+        setData(userResponse.data.data.users[1].username);
+        setRealName(userResponse.data.data.users[0].real_name);
+
+        // Termék adatok
+        const productsResponse = await ProductService.getAllProducts();
+        setProducts(productsResponse);
+        
+        // Statisztikák számolása
+        calculateProductStats(productsResponse);
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Hiba történt az adatok lekérésekor:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  // Termék statisztikák számolása a valós adatok alapján
+  const calculateProductStats = (products) => {
+    if (!products || products.length === 0) return;
+
+    // Típusok számolása
+    const types = {};
+    let lowStockCount = 0;
+    
+    products.forEach(product => {
+      // Típusok számolása
+      if (!types[product.type]) {
+        types[product.type] = 1;
+      } else {
+        types[product.type]++;
+      }
+      
+      // Alacsony készlet számolása
+      if (product.quantity <= 5) {
+        lowStockCount++;
+      }
+    });
+    
+    setProductStats({
+      totalProducts: products.length,
+      lowStock: lowStockCount,
+      types: types
+    });
+  };
+  
+  // Típus-statisztikák létrehozása a kördiagramhoz a valós adatokból
+  const createCategoryChartData = () => {
+    const types = productStats.types;
+    const typeNames = Object.keys(types);
+    
+    // Ha nincs elég típus, akkor maradnak az alapértelmezett adatok
+    if (typeNames.length < 3) {
+      return {
+        labels: ['Elektronika', 'Mobileszköz', 'Egyéb'],
+        datasets: [{
+          data: [35, 45, 20],
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(255, 206, 86, 0.7)'
+          ],
+          borderWidth: 1,
+        }]
+      };
+    }
+    
+    // Valós adatokból építjük fel
+    const total = Object.values(types).reduce((sum, count) => sum + count, 0);
+    const percentages = typeNames.map(type => Math.round((types[type] / total) * 100));
+    
+    const colors = [
+      'rgba(255, 99, 132, 0.7)',
+      'rgba(54, 162, 235, 0.7)',
+      'rgba(255, 206, 86, 0.7)',
+      'rgba(75, 192, 192, 0.7)',
+      'rgba(153, 102, 255, 0.7)',
+    ];
+    
+    return {
+      labels: typeNames,
+      datasets: [{
+        data: percentages,
+        backgroundColor: typeNames.map((_, idx) => colors[idx % colors.length]),
+        borderWidth: 1,
+      }]
+    };
+  };
+  
+  // Termék-teljesítmény grafikonadatok létrehozása a valós adatokból
+  const createProductPerformanceData = () => {
+    if (products.length < 5) {
+      // Alapértelmezett adatok, ha nincs elég termék
+      return {
+        labels: ['Laptop', 'Telefon', 'Monitor', 'Billentyűzet', 'Egér'],
+        datasets: [{
+          label: 'Mennyiség (db)',
+          data: [128, 243, 156, 87, 124],
+          backgroundColor: 'rgba(75, 192, 192, 0.7)',
+        }]
+      };
+    }
+    
+    // Top 5 termék a mennyiség alapján
+    const topProducts = [...products]
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+      
+    return {
+      labels: topProducts.map(p => p.name),
+      datasets: [{
+        label: 'Mennyiség (db)',
+        data: topProducts.map(p => p.quantity),
+        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+      }]
+    };
+  };
+  
+  // Dinamikusan létrehozott kategória diagram adatok
+  const categoryData = createCategoryChartData();
+  
+  // Dinamikusan létrehozott termék teljesítmény adatok
+  const productPerformance = createProductPerformanceData();
+  
+  // Eladási és előrejelzési adatok (ezeket megtartjuk példaként)
   const salesData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     datasets: [
@@ -191,34 +351,7 @@ const Dashboard = () => {
     ],
   };
   
-  const categoryData = {
-    labels: ['Elektronika', 'Bútor', 'Ruházat', 'Élelmiszer', 'Egyéb'],
-    datasets: [
-      {
-        data: [35, 25, 15, 15, 10],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.7)',
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(255, 206, 86, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-          'rgba(153, 102, 255, 0.7)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-  
-  const productPerformance = {
-    labels: ['Laptop', 'Telefon', 'Monitor', 'Billentyűzet', 'Egér'],
-    datasets: [
-      {
-        label: 'Eladások (db)',
-        data: [128, 243, 156, 87, 124],
-        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-      },
-    ],
-  };
-  
+  // Konverziós adatok (megtartjuk példaként)
   const conversionData = {
     labels: ['Látogatás', 'Érdeklődés', 'Kosárba', 'Vásárlás'],
     datasets: [
@@ -242,19 +375,17 @@ const Dashboard = () => {
     ]
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []); // Függőségi tömb, hogy elkerüld a végtelen ciklust
+  // Alacsony készletű termékek listája
+  const getLowStockProducts = () => {
+    if (!products || products.length === 0) return [];
+    
+    return products
+      .filter(p => p.quantity <= 5)
+      .sort((a, b) => a.quantity - b.quantity)
+      .slice(0, 4);
+  };
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get('/users/');
-      setData(response.data.data.users[1].username);
-      setRealName(response.data.data.users[0].real_name);
-    } catch (error) {
-      console.error('Hiba történt', error);
-    }
-  }
+  const lowStockProducts = getLowStockProducts();
 
   return (
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen pb-10">      
@@ -267,13 +398,13 @@ const Dashboard = () => {
           </div>
         </div>
         
-        {/* KPI Kártyák */}
+        {/* KPI Kártyák - részben valós adatokkal */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
-            { title: 'Aktív Termékek', value: '2,346', change: '+8.1%', trend: 'up', icon: '📦', color: 'blue' },
+            { title: 'Aktív Termékek', value: `${productStats.totalProducts}`, change: '+8.1%', trend: 'up', icon: '📦', color: 'blue' },
             { title: 'Havi Bevétel', value: '4.2M Ft', change: '+12.4%', trend: 'up', icon: '💰', color: 'green' },
             { title: 'Raktárkészlet', value: '86%', change: '-2.3%', trend: 'down', icon: '🏭', color: 'yellow' },
-            { title: 'Új Megrendelések', value: '18', change: '+5', trend: 'up', icon: '📋', color: 'red' }
+            { title: 'Alacsony Készlet', value: `${productStats.lowStock}`, change: '+5', trend: 'up', icon: '📋', color: 'red' }
           ].map((item, i) => (
             <div key={i} className={`bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200`}>
               <div className="flex items-center justify-between mb-1">
@@ -399,15 +530,15 @@ const Dashboard = () => {
           </div>
         </div>
         
-        {/* Célteljesítés és Népszerű termékek */}
+        {/* Célteljesítés és Népszerű termékek - Népszerű termékek már valós adatokból */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <GoalProgress />
-          <FavoriteProducts />
+          <FavoriteProducts products={products} />
         </div>
         
-        {/* Legnépszerűbb termékek táblázat */}
+        {/* Legnépszerűbb termékek táblázat - valós adatokból */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
-          <h2 className="font-semibold text-lg mb-4 text-gray-800 dark:text-white">Legnépszerűbb Termékek</h2>
+          <h2 className="font-semibold text-lg mb-4 text-gray-800 dark:text-white">Termék mennyiségek</h2>
           <div className="h-64">
             <Bar data={productPerformance} options={{ 
               maintainAspectRatio: false,
@@ -423,7 +554,7 @@ const Dashboard = () => {
         
         {/* Készlet és tranzakciók sor */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Alacsony készlet */}
+          {/* Alacsony készlet - valós adatokból */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold text-lg text-gray-800 dark:text-white">Alacsony Készleten</h2>
@@ -439,34 +570,29 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  <tr>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Dell XPS 15 Laptop</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">3 db</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400">Kritikus</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">iPhone 13 Pro (128GB)</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">5 db</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">Alacsony</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Samsung TV 55" QLED</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">2 db</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400">Kritikus</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">Logitech MX Master 3</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">8 db</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">Alacsony</span>
-                    </td>
-                  </tr>
+                  {lowStockProducts.length > 0 ? (
+                    lowStockProducts.map(product => (
+                      <tr key={product.id}>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{product.name}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{product.quantity} db</td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            product.quantity <= 3 
+                              ? 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
+                              : 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400'
+                          }`}>
+                            {product.quantity <= 3 ? 'Kritikus' : 'Alacsony'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Nincsenek alacsony készletű termékek.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -527,7 +653,7 @@ const Dashboard = () => {
           ))}
         </div>
         
-        {/* Kategória megoszlás */}
+        {/* Kategória megoszlás - valós adatokból */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-8">
           <h2 className="font-semibold text-lg mb-4 text-gray-800 dark:text-white">Kategória Megoszlás</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

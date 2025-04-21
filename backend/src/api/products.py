@@ -9,6 +9,7 @@ products_bp = Blueprint('products', __name__)
 def get_all_products():
     try:
         products = Products.query.all()
+        print([p.to_dict() for p in products])
         return jsonify([p.to_dict() for p in products]), 200
     except Exception as e:
         return jsonify({
