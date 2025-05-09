@@ -9,7 +9,6 @@ products_bp = Blueprint('products', __name__)
 def get_all_products():
     try:
         products = Products.query.all()
-        print([p.to_dict() for p in products])
         return jsonify([p.to_dict() for p in products]), 200
     except Exception as e:
         return jsonify({
@@ -20,7 +19,6 @@ def get_all_products():
 @products_bp.route('/add_product', methods=['POST'])
 def create_product():
     data = request.get_json()
-    print(data)
     try:
         new_product = Products(
             name=data['name'],

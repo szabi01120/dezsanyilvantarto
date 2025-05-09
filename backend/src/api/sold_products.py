@@ -19,7 +19,6 @@ def get_all_products():
 @sold_products_bp.route('/add_product', methods=['POST'])
 def create_product():
     data = request.get_json()
-    print(data)
     try:
         new_product = SoldProducts(
             name=data['name'],

@@ -15,7 +15,6 @@ users_bp = Blueprint('users', __name__)
 @users_bp.route('/login', methods=['POST']) # POST BEJELENTKEZÉS
 def login():
     data = request.get_json()
-    print(data)
 
     if not data or 'username' not in data or 'password' not in data:
         return jsonify({'error': 'Hiányzó felhasználónév vagy jelszó!'}), 400
@@ -23,8 +22,6 @@ def login():
     user = User.query.filter_by(username=data['username']).first()
     
     if not user:
-        print('user: ', user)
-        print(ph.hash(data['password']))
         ph.hash(data['password'])
         return jsonify({'error': 'Hibás felhasználónév vagy jelszó!'}), 400
     
@@ -179,7 +176,6 @@ def update_user(id):
 
     user = User.query.get_or_404(id)
     data = request.get_json()
-    print(data)
 
     try:
         if 'password' in data:
