@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post('http://127.0.0.1:5000/api/users/logout');
+      await axios.post('https://dezsanyilvantarto.hu/api/users/logout');
     } catch (error) {
       console.error('Hiba történt a kijelentkezéskor', error);
     } finally {
