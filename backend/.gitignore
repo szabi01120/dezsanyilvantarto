@@ -1,7 +1,5 @@
 .env
 .venv/
-instance/
-src/
 venv/
 *.pyc
 __pycache__/
@@ -9,3 +7,8 @@ __pycache__/
 *.sqlite
 *.sqlite3
 data/*.json
+*.db
+*.sqlite
+*.sqlite3
+app.db
+instance/app.db

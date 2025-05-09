@@ -1,4 +1,4 @@
-version: '3.8'  # A legfrissebb verzió megadása ajánlott
+version: '3.8'
 
 services:
   caddy:
@@ -27,7 +27,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
     volumes:
-      - dezsanyilvantarto_data:/app/instance
+      - dezsanyilvantarto_data:/src/instance
 networks:
   default:
     external:

@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Deploy to VPS
       uses: appleboy/ssh-action@master
@@ -18,7 +18,16 @@ jobs:
         port: ${{ secrets.VPS_PORT }}
         script: |
           cd /root/dezsanyilvantarto
+          
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          mkdir -p /root/dezsanyilvantarto_backups
+          
+          docker compose cp backend:/src/instance/app.db /root/dezsanyilvantarto_backups/app_${TIMESTAMP}.db 2>/dev/null || echo "No existing container to backup from"
+          
           git pull origin main
+          
           docker compose down
           docker compose build
           docker compose up -d
+          
+          echo "Deployment completed at $(date)"
