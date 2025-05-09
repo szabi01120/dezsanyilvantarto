@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ main ]  # vagy master, attól függően, melyik az alapértelmezett ág
+    branches: [ main ]
 
 jobs:
   deploy:
