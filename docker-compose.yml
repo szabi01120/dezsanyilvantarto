@@ -26,7 +26,11 @@ services:
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+    volumes:
+      - dezsanyilvantarto_data:/app/instance
 networks:
   default:
     external:
       name: docker_internal
+volumes:
+  dezsanyilvantarto_data:
