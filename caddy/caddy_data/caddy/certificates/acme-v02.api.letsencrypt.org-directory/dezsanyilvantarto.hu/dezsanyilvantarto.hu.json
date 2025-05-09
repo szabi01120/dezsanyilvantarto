@@ -1,0 +1,18 @@
+{
+	"sans": [
+		"dezsanyilvantarto.hu"
+	],
+	"issuer_data": {
+		"url": "https://acme-v02.api.letsencrypt.org/acme/cert/05e18154d490623600d6c7fbdd139d12ca94",
+		"ca": "https://acme-v02.api.letsencrypt.org/directory",
+		"renewal_info": {
+			"suggestedWindow": {
+				"start": "2025-07-07T23:19:14Z",
+				"end": "2025-07-09T18:30:03Z"
+			},
+			"_uniqueIdentifier": "nytfzzwhT50Et-0rLMTGcIvS1w0.BeGBVNSQYjYA1sf73ROdEsqU",
+			"_retryAfter": "2025-05-10T03:33:43.351152368Z",
+			"_selectedTime": "2025-07-09T00:02:36Z"
+		}
+	}
+}

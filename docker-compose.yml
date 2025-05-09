@@ -1,0 +1,32 @@
+version: '3.8'  # A legfrissebb verzió megadása ajánlott
+
+services:
+  caddy:
+      image: caddy
+      container_name: caddy
+      hostname: caddy
+      restart: unless-stopped
+      ports:        
+        - "80:80"
+        - "443:443"
+        - "443:443/udp"
+      volumes:
+        - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+        - ./caddy/caddy_config:/config
+        - ./caddy/caddy_data:/data
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+networks:
+  default:
+    external:
+      name: docker_internal

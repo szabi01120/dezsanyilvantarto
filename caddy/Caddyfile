@@ -1,0 +1,8 @@
+dezsanyilvantarto.hu {
+    route /api/* {
+        reverse_proxy backend:5000
+    }
+    route /* {
+        reverse_proxy frontend:80
+    }
+}
