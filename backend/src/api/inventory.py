@@ -43,3 +43,38 @@ def get_low_stock_items():
             'message': 'Hiba az alacsony készletű termékek lekérdezésekor.',
             'error': str(e)
         }), 400
+
+@inventory_bp.route('/<int:inventory_id>', methods=['DELETE'])
+def delete_inventory_item(inventory_id):
+    """Inventory item törlés"""
+    inventory_item = Inventory.query.get_or_404(inventory_id)
+    print("items:", inventory_item)
+
+    try:
+        movements = InventoryMovement.query.filter_by(inventory_id=inventory_id).all()
+        movements_count = len(movements)
+        print("movements:", movements)
+
+        for movement in movements:
+            print("Deleting movement:", movement)
+            db.session.delete(movement)
+        print("Deleted movements count:", movements_count)
+
+        product_name = inventory_item.product.name
+        print("Product name:", product_name)
+        db.session.delete(inventory_item)
+        print("Deleted inventory item:", inventory_item)
+
+        db.session.commit()
+
+        return jsonify({
+            'message': f'{product_name} készlet elem törölve.',
+            'deleted_movements': movements_count
+        }), 200
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'message': 'Hiba a készlet elem törlésekor.',
+            'error': str(e)
+        }), 400

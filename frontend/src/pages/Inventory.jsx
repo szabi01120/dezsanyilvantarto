@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { PlusIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { InventoryService } from '../services/inventoryService';
-import InventoryTable from '../components/inventory/InventoryTable';
-import ErrorMessage from '../components/ui/ErrorMessage';
-import Spinner from '../components/ui/Spinner';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { PlusIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { InventoryService } from "../services/inventoryService";
+import InventoryTable from "../components/inventory/InventoryTable";
+import ErrorMessage from "../components/ui/ErrorMessage";
+import Spinner from "../components/ui/Spinner";
 
 export default function Inventory() {
   const [inventory, setInventory] = useState([]);
   const [lowStockItems, setLowStockItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     loadInventoryData();
@@ -22,24 +22,39 @@ export default function Inventory() {
       setLoading(true);
       const [inventoryData, lowStockData] = await Promise.all([
         InventoryService.getAllInventory(),
-        InventoryService.getLowStockItems(5)
+        InventoryService.getLowStockItems(5),
       ]);
-      
+
       setInventory(inventoryData);
       setLowStockItems(lowStockData);
     } catch (error) {
-      console.error('Hiba a készlet adatok betöltésekor:', error);
-      setError('Nem sikerült betölteni a készlet adatokat.');
+      console.error("Hiba a készlet adatok betöltésekor:", error);
+      setError("Nem sikerült betölteni a készlet adatokat.");
     } finally {
       setLoading(false);
     }
   };
 
+  // ✅ ÚJ: Termék törlése
+  const handleDeleteInventoryItem = async (inventoryId) => {
+    try {
+      await InventoryService.deleteInventoryItem(inventoryId);
+      await loadInventoryData(); // Lista frissítése
+      setError(null); // Hiba törlése ha volt
+    } catch (error) {
+      console.error("Hiba a termék törlésekor:", error);
+      setError("Nem sikerült törölni a terméket.");
+    }
+  };
+
   const totalValue = inventory.reduce((sum, item) => {
-    return sum + (item.current_quantity * 0); // Itt kellene a beszerzési ár
+    return sum + item.current_quantity * 0; // Itt kellene a beszerzési ár
   }, 0);
 
-  const totalItems = inventory.reduce((sum, item) => sum + item.current_quantity, 0);
+  const totalItems = inventory.reduce(
+    (sum, item) => sum + item.current_quantity,
+    0
+  );
 
   if (loading) return <Spinner />;
 
@@ -151,7 +166,10 @@ export default function Inventory() {
                       Elérhető termékek
                     </dt>
                     <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                      {inventory.filter(item => item.available_quantity > 0).length}
+                      {
+                        inventory.filter((item) => item.available_quantity > 0)
+                          .length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -175,21 +193,21 @@ export default function Inventory() {
           <div className="hidden sm:block">
             <nav className="flex space-x-8" aria-label="Tabs">
               <button
-                onClick={() => setActiveTab('all')}
+                onClick={() => setActiveTab("all")}
                 className={`${
-                  activeTab === 'all'
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  activeTab === "all"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 } whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium`}
               >
                 Összes termék ({inventory.length})
               </button>
               <button
-                onClick={() => setActiveTab('low-stock')}
+                onClick={() => setActiveTab("low-stock")}
                 className={`${
-                  activeTab === 'low-stock'
-                    ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  activeTab === "low-stock"
+                    ? "border-yellow-500 text-yellow-600 dark:text-yellow-400"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 } whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium`}
               >
                 Alacsony készlet ({lowStockItems.length})
@@ -201,18 +219,27 @@ export default function Inventory() {
           </div>
         </div>
 
+        {/* Error display */}
+        {error && (
+          <div className="mt-4">
+            <ErrorMessage message={error} />
+          </div>
+        )}
+
         {/* Content */}
         <div className="mt-6">
-          {activeTab === 'all' && (
-            <InventoryTable 
-              inventory={inventory} 
+          {activeTab === "all" && (
+            <InventoryTable
+              inventory={inventory}
               onRefresh={loadInventoryData}
+              onDelete={handleDeleteInventoryItem}
             />
           )}
-          {activeTab === 'low-stock' && (
-            <InventoryTable 
-              inventory={lowStockItems} 
+          {activeTab === "low-stock" && (
+            <InventoryTable
+              inventory={lowStockItems}
               onRefresh={loadInventoryData}
+              onDelete={handleDeleteInventoryItem}
               showLowStockWarning={true}
             />
           )}

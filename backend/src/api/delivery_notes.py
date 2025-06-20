@@ -171,7 +171,7 @@ def add_item_to_delivery_note(delivery_note_id):
 
 @delivery_notes_bp.route('/<int:delivery_note_id>/items/<int:item_id>', methods=['PUT'])
 def update_delivery_note_item(delivery_note_id, item_id):
-    """Szállítólevél tétel módosítása IDE VALAMI COMMITHOZasd"""
+    """Szállítólevél tétel módosítása"""
     delivery_note = DeliveryNote.query.get_or_404(delivery_note_id)
     item = DeliveryNoteItem.query.filter_by(
         id=item_id, 
@@ -330,17 +330,29 @@ def delete_delivery_note(delivery_note_id):
     delivery_note = DeliveryNote.query.get_or_404(delivery_note_id)
     
     try:
-        # Összes tétel visszavonása a készletből
+        # Tételek mentése (mielőtt törlődnének)
+        items_to_process = []
         for item in delivery_note.items:
+            items_to_process.append({
+                'product_name': item.product_name,
+                'product_type': item.product_type,
+                'manufacturer': item.manufacturer,
+                'quantity': item.quantity,
+                'unit_price': item.unit_price,
+                'currency': item.currency
+            })
+        
+        # Készlet korrekciók
+        for item_data in items_to_process:
             inventory_item = Inventory.query.filter_by(
-                product_name=item.product_name,
-                product_type=item.product_type,
-                manufacturer=item.manufacturer
+                product_name=item_data['product_name'],
+                product_type=item_data['product_type'],
+                manufacturer=item_data['manufacturer']
             ).first()
             
             if inventory_item:
-                inventory_item.current_quantity -= item.quantity
-                inventory_item.available_quantity -= item.quantity
+                inventory_item.current_quantity -= item_data['quantity']
+                inventory_item.available_quantity -= item_data['quantity']
                 inventory_item.last_updated = datetime.utcnow()
                 inventory_item.calculate_total_value()
                 
@@ -354,16 +366,16 @@ def delete_delivery_note(delivery_note_id):
                 movement = InventoryMovement(
                     inventory_id=inventory_item.id,
                     movement_type='OUT',
-                    quantity=item.quantity,
-                    unit_price=item.unit_price,
-                    currency=item.currency,
+                    quantity=item_data['quantity'],
+                    unit_price=item_data['unit_price'],
+                    currency=item_data['currency'],
                     reference_type='DELIVERY_NOTE_DELETE',
                     reference_id=delivery_note_id,
                     notes=f"Szállítólevél törlés: {delivery_note.delivery_number}"
                 )
                 db.session.add(movement)
         
-        # Szállítólevél törlése (cascade miatt a tételek is törlődnek)
+        # Szállítólevél törlése
         db.session.delete(delivery_note)
         db.session.commit()
         

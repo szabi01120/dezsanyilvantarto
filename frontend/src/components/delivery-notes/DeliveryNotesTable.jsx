@@ -1,32 +1,56 @@
-import React, { useState } from 'react';
-import { PencilIcon, EyeIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import SearchAndFilterBar from '../ui/SearchAndFilterBar';
+import React, { useState } from "react";
+import {
+  PencilIcon,
+  EyeIcon,
+  DocumentTextIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import SearchAndFilterBar from "../ui/SearchAndFilterBar";
 
-export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh }) {
-  const [searchTerm, setSearchTerm] = useState('');
+export default function DeliveryNotesTable({
+  deliveryNotes,
+  onEdit,
+  onRefresh,
+  onDelete,
+}) {
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedDeliveryNote, setSelectedDeliveryNote] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  const filteredDeliveryNotes = deliveryNotes.filter(dn =>
-    dn.delivery_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (dn.supplier_name && dn.supplier_name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredDeliveryNotes = deliveryNotes.filter(
+    (dn) =>
+      dn.delivery_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (dn.supplier_name &&
+        dn.supplier_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('hu-HU');
+    return new Date(dateString).toLocaleDateString("hu-HU");
   };
 
   const formatDateTime = (dateString) => {
-    return new Date(dateString).toLocaleDateString('hu-HU', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("hu-HU", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const handleViewDetails = (deliveryNote) => {
     setSelectedDeliveryNote(deliveryNote);
+  };
+
+  const handleDelete = (deliveryNote) => {
+    setShowDeleteConfirm(deliveryNote);
+  };
+
+  const confirmDelete = async () => {
+    if (showDeleteConfirm && onDelete) {
+      await onDelete(showDeleteConfirm.id);
+      setShowDeleteConfirm(null);
+    }
   };
 
   if (filteredDeliveryNotes.length === 0 && searchTerm) {
@@ -43,7 +67,9 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
     return (
       <div className="text-center py-12 bg-white dark:bg-gray-800 shadow rounded-lg">
         <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nincs szállítólevél</h3>
+        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+          Nincs szállítólevél
+        </h3>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Kezdj el új szállítólevél létrehozásával.
         </p>
@@ -68,32 +94,56 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
                   Szállítólevél szám
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
                   Szállító
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
                   Dátum
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
                   Tételek
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
                   Összérték
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
                   Létrehozva
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
                   Műveletek
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredDeliveryNotes.map((deliveryNote) => (
-                <tr key={deliveryNote.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr
+                  key={deliveryNote.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {deliveryNote.delivery_number}
@@ -101,7 +151,7 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900 dark:text-white">
-                      {deliveryNote.supplier_name || '-'}
+                      {deliveryNote.supplier_name || "-"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -111,7 +161,8 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
                     {deliveryNote.items ? deliveryNote.items.length : 0} db
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {deliveryNote.total_value.toLocaleString('hu-HU')} {deliveryNote.currency}
+                    {deliveryNote.total_value.toLocaleString("hu-HU")}{" "}
+                    {deliveryNote.currency}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {formatDateTime(deliveryNote.created_at)}
@@ -132,6 +183,13 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
                       >
                         <PencilIcon className="h-5 w-5" />
                       </button>
+                      <button
+                        onClick={() => handleDelete(deliveryNote)}
+                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        title="Törlés"
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -149,7 +207,7 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
                 Szállítólevél részletei
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -181,54 +239,57 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
                   </div>
                 )}
 
-                {selectedDeliveryNote.items && selectedDeliveryNote.items.length > 0 && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
-                      Tételek
-                    </label>
-                    <div className="border dark:border-gray-600 rounded-md overflow-hidden">
-                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                              Termék
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                              Mennyiség
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                              Egységár
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                              Összesen
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-                          {selectedDeliveryNote.items.map((item, index) => (
-                            <tr key={index}>
-                              <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                                {item.product_name}
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {item.product_type} • {item.manufacturer}
-                                </div>
-                              </td>
-                              <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                                {item.quantity} db
-                              </td>
-                              <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                                {item.unit_price.toLocaleString('hu-HU')} {item.currency}
-                              </td>
-                              <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                                {item.total_price.toLocaleString('hu-HU')} {item.currency}
-                              </td>
+                {selectedDeliveryNote.items &&
+                  selectedDeliveryNote.items.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                        Tételek
+                      </label>
+                      <div className="border dark:border-gray-600 rounded-md overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                          <thead className="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                                Termék
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                                Mennyiség
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                                Egységár
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                                Összesen
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
+                            {selectedDeliveryNote.items.map((item, index) => (
+                              <tr key={index}>
+                                <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                                  {item.product_name}
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {item.product_type} • {item.manufacturer}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                                  {item.quantity} db
+                                </td>
+                                <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                                  {item.unit_price.toLocaleString("hu-HU")}{" "}
+                                  {item.currency}
+                                </td>
+                                <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                                  {item.total_price.toLocaleString("hu-HU")}{" "}
+                                  {item.currency}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center">
@@ -236,7 +297,8 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
                       Összérték:
                     </span>
                     <span className="text-lg font-medium text-gray-900 dark:text-white">
-                      {selectedDeliveryNote.total_value.toLocaleString('hu-HU')} {selectedDeliveryNote.currency}
+                      {selectedDeliveryNote.total_value.toLocaleString("hu-HU")}{" "}
+                      {selectedDeliveryNote.currency}
                     </span>
                   </div>
                 </div>
@@ -268,6 +330,43 @@ export default function DeliveryNotesTable({ deliveryNotes, onEdit, onRefresh })
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                 >
                   Szerkesztés
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Törlés megerősítő dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+            <div className="mt-3 text-center">
+              <TrashIcon className="mx-auto h-12 w-12 text-red-600" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mt-4">
+                Szállítólevél törlése
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Biztosan törölni szeretnéd a{" "}
+                <strong>{showDeleteConfirm.delivery_number}</strong>{" "}
+                szállítólevelet?
+                <br />
+                <span className="text-red-600 font-medium">
+                  Ez a művelet nem visszavonható!
+                </span>
+              </p>
+              <div className="mt-6 flex justify-center space-x-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
+                >
+                  Mégse
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colorsf"
+                >
+                  Törlés
                 </button>
               </div>
             </div>

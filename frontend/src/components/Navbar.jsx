@@ -9,7 +9,7 @@ import logo from '../assets/logo.png';
 
 const navigation = [
     { name: 'Dashboard', href: '/', current: true },
-    { name: 'Termékek', href: '/products', current: false },
+    // { name: 'Termékek', href: '/products', current: false },
     { name: 'Készlet', href: '/inventory', current: false },
     { name: 'Megrendelések', href: '/orders', current: false },
     { name: 'Ajánlat', href: '/quotation', current: false },

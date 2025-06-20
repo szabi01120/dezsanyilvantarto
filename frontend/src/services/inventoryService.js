@@ -1,13 +1,13 @@
-import axios from '../utils/axios';
+import axios from "../utils/axios";
 
 export const InventoryService = {
   // Összes készlet tétel lekérése
   getAllInventory: async () => {
     try {
-      const response = await axios.get('/inventory/get_inventory');
+      const response = await axios.get("/inventory/get_inventory");
       return response.data;
     } catch (error) {
-      console.error('Hiba a készlet lekérésekor:', error);
+      console.error("Hiba a készlet lekérésekor:", error);
       throw error;
     }
   },
@@ -15,10 +15,10 @@ export const InventoryService = {
   // Statisztikák lekérése
   getStatistics: async () => {
     try {
-      const response = await axios.get('/inventory/statistics');
+      const response = await axios.get("/inventory/statistics");
       return response.data;
     } catch (error) {
-      console.error('Hiba a statisztikák lekérésekor:', error);
+      console.error("Hiba a statisztikák lekérésekor:", error);
       throw error;
     }
   },
@@ -29,7 +29,7 @@ export const InventoryService = {
       const response = await axios.get(`/inventory/${inventoryId}/movements`);
       return response.data;
     } catch (error) {
-      console.error('Hiba a készletmozgások lekérésekor:', error);
+      console.error("Hiba a készletmozgások lekérésekor:", error);
       throw error;
     }
   },
@@ -37,11 +37,24 @@ export const InventoryService = {
   // Alacsony készletű termékek
   getLowStockItems: async (threshold = 5) => {
     try {
-      const response = await axios.get(`/inventory/low_stock?threshold=${threshold}`);
+      const response = await axios.get(
+        `/inventory/low_stock?threshold=${threshold}`
+      );
       return response.data;
     } catch (error) {
-      console.error('Hiba az alacsony készletű termékek lekérésekor:', error);
+      console.error("Hiba az alacsony készletű termékek lekérésekor:", error);
       throw error;
     }
-  }
+  },
+
+  // Inventory tétel törlése
+  deleteInventoryItem: async (inventoryId) => {
+    try {
+      const response = await axios.delete(`/inventory/${inventoryId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Hiba a készlet tétel törlésekor:", error);
+      throw error;
+    }
+  },
 };

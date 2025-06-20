@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { PlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import { DeliveryNoteService } from '../services/deliveryNoteService';
-import DeliveryNotesTable from '../components/delivery-notes/DeliveryNotesTable';
-import DeliveryNoteForm from '../components/delivery-notes/DeliveryNoteForm';
-import ErrorMessage from '../components/ui/ErrorMessage';
-import Spinner from '../components/ui/Spinner';
+import React, { useState, useEffect } from "react";
+import { PlusIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
+import { DeliveryNoteService } from "../services/deliveryNoteService";
+import DeliveryNotesTable from "../components/delivery-notes/DeliveryNotesTable";
+import DeliveryNoteForm from "../components/delivery-notes/DeliveryNoteForm";
+import ErrorMessage from "../components/ui/ErrorMessage";
+import Spinner from "../components/ui/Spinner";
 
 export default function DeliveryNotes() {
   const [deliveryNotes, setDeliveryNotes] = useState([]);
@@ -24,8 +24,8 @@ export default function DeliveryNotes() {
       const data = await DeliveryNoteService.getAllDeliveryNotes();
       setDeliveryNotes(data);
     } catch (error) {
-      console.error('Hiba a szállítólevelek betöltésekor:', error);
-      setError('Nem sikerült betölteni a szállítóleveleket.');
+      console.error("Hiba a szállítólevelek betöltésekor:", error);
+      setError("Nem sikerült betölteni a szállítóleveleket.");
     } finally {
       setLoading(false);
     }
@@ -39,8 +39,8 @@ export default function DeliveryNotes() {
       setShowForm(true);
       await loadDeliveryNotes(); // Frissítjük a listát
     } catch (error) {
-      console.error('Hiba az új szállítólevél létrehozásakor:', error);
-      setError('Nem sikerült létrehozni az új szállítólevelet.');
+      console.error("Hiba az új szállítólevél létrehozásakor:", error);
+      setError("Nem sikerült létrehozni az új szállítólevelet.");
     } finally {
       setCreating(false);
     }
@@ -51,6 +51,17 @@ export default function DeliveryNotes() {
     setShowForm(true);
   };
 
+  const handleDeleteDeliveryNote = async (id) => {
+    try {
+      await DeliveryNoteService.deleteDeliveryNote(id);
+      await loadDeliveryNotes(); // Lista frissítése
+      setError(null); // Hiba törlése ha volt
+    } catch (error) {
+      console.error("Hiba a szállítólevél törlésekor:", error);
+      setError("Nem sikerült törölni a szállítólevelet.");
+    }
+  };
+
   const handleCloseForm = () => {
     setShowForm(false);
     setSelectedDeliveryNote(null);
@@ -59,11 +70,13 @@ export default function DeliveryNotes() {
 
   const totalDeliveryNotes = deliveryNotes.length;
   const totalValue = deliveryNotes.reduce((sum, dn) => sum + dn.total_value, 0);
-  const thisMonthDeliveryNotes = deliveryNotes.filter(dn => {
+  const thisMonthDeliveryNotes = deliveryNotes.filter((dn) => {
     const deliveryDate = new Date(dn.delivery_date);
     const now = new Date();
-    return deliveryDate.getMonth() === now.getMonth() && 
-           deliveryDate.getFullYear() === now.getFullYear();
+    return (
+      deliveryDate.getMonth() === now.getMonth() &&
+      deliveryDate.getFullYear() === now.getFullYear()
+    );
   }).length;
 
   if (loading) return <Spinner />;
@@ -92,7 +105,7 @@ export default function DeliveryNotes() {
               className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-              {creating ? 'Létrehozás...' : 'Új szállítólevél'}
+              {creating ? "Létrehozás..." : "Új szállítólevél"}
             </button>
           </div>
         </div>
@@ -103,7 +116,10 @@ export default function DeliveryNotes() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <DocumentTextIcon className="h-8 w-8 text-blue-500" aria-hidden="true" />
+                  <DocumentTextIcon
+                    className="h-8 w-8 text-blue-500"
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -133,7 +149,7 @@ export default function DeliveryNotes() {
                       Összes érték
                     </dt>
                     <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                      {totalValue.toLocaleString('hu-HU')} Ft
+                      {totalValue.toLocaleString("hu-HU")} Ft
                     </dd>
                   </dl>
                 </div>
@@ -177,7 +193,12 @@ export default function DeliveryNotes() {
                       Átlagos érték
                     </dt>
                     <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                      {totalDeliveryNotes > 0 ? Math.round(totalValue / totalDeliveryNotes).toLocaleString('hu-HU') : 0} Ft
+                      {totalDeliveryNotes > 0
+                        ? Math.round(
+                            totalValue / totalDeliveryNotes
+                          ).toLocaleString("hu-HU")
+                        : 0}{" "}
+                      Ft
                     </dd>
                   </dl>
                 </div>
@@ -195,10 +216,11 @@ export default function DeliveryNotes() {
 
         {/* Content */}
         <div className="mt-8">
-          <DeliveryNotesTable 
+          <DeliveryNotesTable
             deliveryNotes={deliveryNotes}
             onEdit={handleEditDeliveryNote}
             onRefresh={loadDeliveryNotes}
+            onDelete={handleDeleteDeliveryNote}
           />
         </div>
       </div>
