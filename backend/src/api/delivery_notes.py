@@ -179,9 +179,13 @@ def update_delivery_note_item(delivery_note_id, item_id):
     ).first_or_404()
     
     data = request.get_json()
-    
+
     try:
-        # Régi adatok mentése a készlet visszaállításához
+        if not data:
+            return jsonify({
+                'message': 'Nincs megadva adat a tétel módosításához.'
+            }), 400
+        
         old_quantity = item.quantity
         old_unit_price = item.unit_price
         old_total_price = item.total_price
@@ -191,7 +195,7 @@ def update_delivery_note_item(delivery_note_id, item_id):
         new_unit_price = data.get('unit_price', item.unit_price)
         new_total_price = new_quantity * new_unit_price
         
-        # Tétel frissítése
+        # Tétel frissítése 
         item.product_name = data.get('product_name', item.product_name)
         item.product_type = data.get('product_type', item.product_type)
         item.manufacturer = data.get('manufacturer', item.manufacturer)
@@ -209,34 +213,24 @@ def update_delivery_note_item(delivery_note_id, item_id):
         ).first()
         
         if inventory_item:
-            # Régi mennyiség levonása
-            inventory_item.current_quantity -= old_quantity
-            inventory_item.available_quantity -= old_quantity
-            
-            # Új mennyiség hozzáadása
-            inventory_item.current_quantity += new_quantity
-            inventory_item.available_quantity += new_quantity
-            
-            # Átlagár újraszámítása (egyszerűsített)
-            inventory_item.last_updated = datetime.utcnow()
-            inventory_item.calculate_total_value()
+            print("Creating movement record...")
+            movement = InventoryMovement(
+                inventory_id=inventory_item.id,  # Most már biztos nem None
+                movement_type='ADJUSTMENT',
+                quantity=new_quantity - old_quantity,
+                unit_price=new_unit_price,
+                currency=item.currency,
+                reference_type='DELIVERY_NOTE_UPDATE',
+                reference_id=delivery_note_id,
+                notes=f"Szállítólevél tétel módosítás: {delivery_note.delivery_number}"
+            )
+            db.session.add(movement)
+            print("Movement added to session")
+        else:
+            print("No inventory item found, skipping movement creation")
         
         # Szállítólevél összérték korrekció
-        delivery_note.total_value = delivery_note.total_value - old_total_price + new_total_price
-        
-        # Mozgás rögzítése
-        movement = InventoryMovement(
-            inventory_id=inventory_item.id if inventory_item else None,
-            movement_type='ADJUSTMENT',
-            quantity=new_quantity - old_quantity,
-            unit_price=new_unit_price,
-            currency=item.currency,
-            reference_type='DELIVERY_NOTE_UPDATE',
-            reference_id=delivery_note_id,
-            notes=f"Szállítólevél tétel módosítás: {delivery_note.delivery_number}"
-        )
-        db.session.add(movement)
-        
+        delivery_note.total_value = delivery_note.total_value - old_total_price + new_total_price        
         db.session.commit()
         
         return jsonify({

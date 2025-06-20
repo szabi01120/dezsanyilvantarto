@@ -121,6 +121,13 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
       return;
     }
 
+    console.log('=== FRONTEND DEBUG ===');
+    console.log('editingItem:', editingItem);
+    console.log('editingItem.quantity:', editingItem.quantity, typeof editingItem.quantity);
+    console.log('editingItem.unit_price:', editingItem.unit_price, typeof editingItem.unit_price);
+    console.log('parseInt result:', parseInt(editingItem.quantity));
+    console.log('parseFloat result:', parseFloat(editingItem.unit_price));
+
     try {
       setSaving(true);
       setError(null);
@@ -498,7 +505,7 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
             </div>
           )}
 
-          {/* Action buttons */}
+          {/* Action buttons MENTÉS GOMB*/}
           <div className="flex justify-end space-x-4 mt-10 pt-6 border-t border-gray-600">
             <button
               onClick={onClose}
