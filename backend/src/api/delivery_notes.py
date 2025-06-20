@@ -171,7 +171,7 @@ def add_item_to_delivery_note(delivery_note_id):
 
 @delivery_notes_bp.route('/<int:delivery_note_id>/items/<int:item_id>', methods=['PUT'])
 def update_delivery_note_item(delivery_note_id, item_id):
-    """Szállítólevél tétel módosítása"""
+    """Szállítólevél tétel módosítása IDE VALAMI COMMITHOZ"""
     delivery_note = DeliveryNote.query.get_or_404(delivery_note_id)
     item = DeliveryNoteItem.query.filter_by(
         id=item_id, 
