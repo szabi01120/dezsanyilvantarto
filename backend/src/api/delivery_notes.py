@@ -8,16 +8,15 @@ from src.models.inventory import Inventory, InventoryMovement
 delivery_notes_bp = Blueprint('delivery_notes', __name__)
 
 def generate_delivery_number():
-    """Szállítólevél sorszám generálása"""
+    """UUID-alapú delivery number"""
     today = datetime.now()
     date_str = today.strftime('%Y%m%d')
     
-    # Mai napon hány szállítólevél volt már
-    count = DeliveryNote.query.filter(
-        DeliveryNote.delivery_date == today.date()
-    ).count()
+    # Rövid UUID generálás
+    short_uuid = str(uuid.uuid4()).replace('-', '')[:4].upper()
     
-    return f"SZ-{date_str}-{count + 1:03d}"
+    delivery_number = f"SZ-{date_str}-{short_uuid}"
+    return delivery_number
 
 def update_inventory_average_price(inventory_item, new_quantity, new_unit_price, currency):
     """Súlyozott átlagár számítása"""
@@ -26,7 +25,7 @@ def update_inventory_average_price(inventory_item, new_quantity, new_unit_price,
         inventory_item.average_purchase_price = new_unit_price
         inventory_item.currency = currency
     else:
-        # Ha más pénznemben van, egyelőre nem keverjük (egyszerű megoldás)
+        # Ha más pénznemben van, egyelőre nem keverjük
         if inventory_item.currency == currency:
             # Súlyozott átlag számítás
             total_current_value = inventory_item.current_quantity * inventory_item.average_purchase_price
@@ -59,16 +58,19 @@ def create_delivery_note():
         
         db.session.add(new_delivery_note)
         db.session.commit()
+        result_dict = new_delivery_note.to_dict()
         
         return jsonify({
             'message': 'Szállítólevél sikeresen létrehozva.',
-            'delivery_note': new_delivery_note.to_dict()
+            'delivery_note': result_dict
         }), 201
-    except Exception as e:
+        
+    except Exception as e:        
         db.session.rollback()
         return jsonify({
             'message': 'Hiba a szállítólevél létrehozásakor.',
-            'error': str(e)
+            'error': str(e),
+            'error_type': str(type(e))
         }), 400
 
 @delivery_notes_bp.route('/<int:delivery_note_id>', methods=['GET'])
@@ -91,7 +93,7 @@ def add_item_to_delivery_note(delivery_note_id):
     try:
         total_price = data['quantity'] * data['unit_price']
         
-        # DELIVERY NOT E ITEM LÉTREHOZÁSA
+        # DELIVERY NOTE ITEM LÉTREHOZÁSA
         new_item = DeliveryNoteItem(
             delivery_note_id=delivery_note_id,
             product_name=data['product_name'],
@@ -106,7 +108,7 @@ def add_item_to_delivery_note(delivery_note_id):
         
         db.session.add(new_item)
         
-        # INTELLIGENT INVENTORY MANAGEMENT
+        # ✅ INTELLIGENS INVENTORY KEZELÉS
         item_data = {
             'product_name': data['product_name'],
             'product_type': data['product_type'],
@@ -145,6 +147,7 @@ def add_item_to_delivery_note(delivery_note_id):
         
     except Exception as e:
         db.session.rollback()
+        print(f"❌ ERROR in add_item_to_delivery_note: {str(e)}")
         return jsonify({
             'message': 'Hiba a tétel hozzáadásakor.',
             'error': str(e)
@@ -191,7 +194,11 @@ def update_delivery_note_item(delivery_note_id, item_id):
         }
         new_item_data['total_price'] = new_item_data['quantity'] * new_item_data['unit_price']
         
-        # INTELLIGENT INVENTORY FRISSÍTÉS
+        print(f"🔄 UPDATING DELIVERY NOTE ITEM {item_id}")
+        print(f"Old: {old_item_data}")
+        print(f"New: {new_item_data}")
+        
+        # ✅ INTELLIGENS INVENTORY FRISSÍTÉS
         quantity_change = new_item_data['quantity'] - old_item_data['quantity']
         smart_inventory_update(old_item_data, new_item_data, quantity_change, delivery_note_id)
         
@@ -217,6 +224,7 @@ def update_delivery_note_item(delivery_note_id, item_id):
         
     except Exception as e:
         db.session.rollback()
+        print(f"❌ ERROR in update_delivery_note_item: {str(e)}")
         return jsonify({
             'message': 'Hiba a tétel módosításakor.',
             'error': str(e)
@@ -367,7 +375,7 @@ def delete_delivery_note(delivery_note_id):
             'error': str(e)
         }), 400
     
-# INTELLIGENT INVENTORY MANAGEMENT SZOLGÁLTATÁSOK
+# ✅ ÚJ: INTELLIGENS INVENTORY MANAGEMENT SZOLGÁLTATÁSOK
 
 def get_product_identity_key(product_name, product_type, manufacturer, unit_of_measure, currency):
     """Termék azonosító kulcs generálása"""
@@ -403,9 +411,17 @@ def smart_inventory_update(old_item_data, new_item_data, quantity_change, delive
         new_item_data['unit_of_measure'],
         new_item_data['currency']
     )
-
+    
+    print(f"🔍 SMART UPDATE DEBUG:")
+    print(f"Old key: {old_key}")
+    print(f"New key: {new_key}")
+    print(f"Keys match: {old_key == new_key}")
+    print(f"Quantity change: {quantity_change}")
+    
     if old_key == new_key:
-        # ✅ UGYANAZ A TERMÉK → CSAK MENNYISÉG FRISSÍTÉS        
+        # ✅ UGYANAZ A TERMÉK → CSAK MENNYISÉG FRISSÍTÉS
+        print("🔄 SAME PRODUCT - Updating quantity only")
+        
         inventory_item = find_matching_inventory_item(
             new_item_data['product_name'],
             new_item_data['product_type'],
@@ -422,7 +438,7 @@ def smart_inventory_update(old_item_data, new_item_data, quantity_change, delive
             
             # Átlagár újraszámítás ha ár változott
             if new_item_data['unit_price'] != old_item_data['unit_price']:
-                print("Komplex átlagár számítás implementálása todo.")
+                print("💰 Price changed, recalculating average...")
                 # TODO: Komplex átlagár számítás implementálása
             
             inventory_item.calculate_total_value()
@@ -442,7 +458,8 @@ def smart_inventory_update(old_item_data, new_item_data, quantity_change, delive
                 db.session.add(movement)
         
     else:
-        # SPLIT LOGIKA
+        # ✅ KÜLÖNBÖZŐ TERMÉK → SPLIT LOGIC
+        print("🔀 DIFFERENT PRODUCT - Split logic")
         
         # 1. RÉGI TERMÉKBŐL KIVONJUK
         old_inventory = find_matching_inventory_item(
@@ -483,6 +500,7 @@ def smart_inventory_update(old_item_data, new_item_data, quantity_change, delive
         
         if new_inventory:
             # Meglévő termékhez hozzáadás
+            print("📦 Adding to existing inventory item")
             update_inventory_average_price(
                 new_inventory,
                 new_item_data['quantity'],
@@ -496,6 +514,7 @@ def smart_inventory_update(old_item_data, new_item_data, quantity_change, delive
             
         else:
             # Új inventory item létrehozás
+            print("🆕 Creating new inventory item")
             new_inventory = Inventory(
                 product_name=new_item_data['product_name'],
                 product_type=new_item_data['product_type'],
@@ -536,7 +555,8 @@ def smart_add_item_logic(item_data, delivery_note_id):
     )
     
     if existing_inventory:
-        # Merge
+        print(f"🔗 MERGE: Adding {item_data['quantity']} to existing inventory")
+        # Merge - hozzáadás meglévőhöz
         update_inventory_average_price(
             existing_inventory,
             item_data['quantity'],
@@ -550,6 +570,7 @@ def smart_add_item_logic(item_data, delivery_note_id):
         
         return existing_inventory
     else:
+        print(f"🆕 NEW: Creating new inventory item")
         # Új termék létrehozás
         new_inventory = Inventory(
             product_name=item_data['product_name'],
@@ -566,8 +587,8 @@ def smart_add_item_logic(item_data, delivery_note_id):
         db.session.flush()
         
         return new_inventory
-    
-# AUTOCOMPLETE API
+
+# ✅ ÚJ: AUTOCOMPLETE API
 @delivery_notes_bp.route('/autocomplete/products', methods=['GET'])
 def autocomplete_products():
     """Termék autocomplete API"""
@@ -614,4 +635,3 @@ def autocomplete_products():
             'message': 'Hiba az autocomplete lekérdezésekor.',
             'error': str(e)
         }), 400
-
