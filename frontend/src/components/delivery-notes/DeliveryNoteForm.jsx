@@ -8,6 +8,7 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
     notes: ''
   });
   const [items, setItems] = useState([]);
+  const [originalItems, setOriginalItems] = useState([]); // EREDETI TÉTELEK MENTÉSE
   const [newItem, setNewItem] = useState({
     product_name: '',
     product_type: '',
@@ -21,6 +22,7 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [hasLocalChanges, setHasLocalChanges] = useState(false); // LOKÁLIS VÁLTOZÁSOK KÖVETÉSE MODIFY KÖZBEN
 
   useEffect(() => {
     if (deliveryNote) {
@@ -28,7 +30,9 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
         supplier_name: deliveryNote.supplier_name || '',
         notes: deliveryNote.notes || ''
       });
-      setItems(deliveryNote.items || []);
+      const currentItems = deliveryNote.items || [];
+      setItems(currentItems);
+      setOriginalItems(JSON.parse(JSON.stringify(currentItems))); 
     }
   }, [deliveryNote]);
 
@@ -115,58 +119,29 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
     });
   };
 
-  const handleSaveEditedItem = async () => {
+  // LOCAL TERMÉK MENTÉS
+  const handleSaveEditedItem = () => {
     if (!validateItem(editingItem)) {
       setError('Minden mező kitöltése kötelező és a mennyiség/ár pozitív szám kell legyen.');
       return;
     }
 
-    console.log('=== FRONTEND DEBUG ===');
-    console.log('editingItem:', editingItem);
-    console.log('editingItem.quantity:', editingItem.quantity, typeof editingItem.quantity);
-    console.log('editingItem.unit_price:', editingItem.unit_price, typeof editingItem.unit_price);
-    console.log('parseInt result:', parseInt(editingItem.quantity));
-    console.log('parseFloat result:', parseFloat(editingItem.unit_price));
+    const itemData = {
+      ...editingItem,
+      quantity: parseInt(editingItem.quantity),
+      unit_price: parseFloat(editingItem.unit_price),
+      total_price: parseInt(editingItem.quantity) * parseFloat(editingItem.unit_price)
+    };
 
-    try {
-      setSaving(true);
-      setError(null);
+    // CSAK LOKAL STATE FRISSÍTÉS
+    const updatedItems = items.map(item => 
+      item.id === editingItem.id ? itemData : item
+    );
 
-      const itemData = {
-        product_name: editingItem.product_name,
-        product_type: editingItem.product_type,
-        manufacturer: editingItem.manufacturer,
-        unit_of_measure: editingItem.unit_of_measure,
-        quantity: parseInt(editingItem.quantity),
-        unit_price: parseFloat(editingItem.unit_price),
-        currency: editingItem.currency
-      };
-
-      await DeliveryNoteService.updateDeliveryNoteItem(
-        deliveryNote.id,
-        editingItem.id,
-        itemData
-      );
-
-      // Helyi lista frissítése
-      const updatedItems = items.map(item => 
-        item.id === editingItem.id 
-          ? {
-              ...itemData,
-              id: editingItem.id,
-              total_price: itemData.quantity * itemData.unit_price
-            }
-          : item
-      );
-
-      setItems(updatedItems);
-      setEditingItem(null);
-    } catch (error) {
-      console.error('Hiba a tétel módosításakor:', error);
-      setError('Nem sikerült módosítani a tételt.');
-    } finally {
-      setSaving(false);
-    }
+    setItems(updatedItems);
+    setEditingItem(null);
+    setHasLocalChanges(true);
+    setError(null);
   };
 
   const handleDeleteItem = async (itemId) => {
@@ -190,18 +165,70 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
     }
   };
 
+  // BATCH SAVE - MINDEN VÁLTOZÁST EGYSZERRE MENT
   const handleSave = async () => {
     try {
       setSaving(true);
       setError(null);
 
+      // Szállítólevél adatok mentése
       await DeliveryNoteService.updateDeliveryNote(deliveryNote.id, formData);
+
+      // HA VAN LOCAL TERMÉK VÁLTOZÁS, AKKOR MENTÉS
+      if (hasLocalChanges) {
+        // modified item search
+        const modifiedItems = items.filter(item => {
+          const original = originalItems.find(orig => orig.id === item.id);
+          if (!original) return false; // new item
+          
+          return (
+            original.product_name !== item.product_name ||
+            original.product_type !== item.product_type ||
+            original.manufacturer !== item.manufacturer ||
+            original.unit_of_measure !== item.unit_of_measure ||
+            original.quantity !== item.quantity ||
+            original.unit_price !== item.unit_price ||
+            original.currency !== item.currency
+          );
+        });
+
+        // Módosított tételek mentése
+        for (const item of modifiedItems) {
+          const itemData = {
+            product_name: item.product_name,
+            product_type: item.product_type,
+            manufacturer: item.manufacturer,
+            unit_of_measure: item.unit_of_measure,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            currency: item.currency
+          };
+
+          await DeliveryNoteService.updateDeliveryNoteItem(
+            deliveryNote.id,
+            item.id,
+            itemData
+          );
+        }
+      }
+
       onSave();
     } catch (error) {
       console.error('Hiba a szállítólevél mentésekor:', error);
       setError('Nem sikerült menteni a szállítólevelet.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Mégse gomb - LOCAL VÁLTOZÁSOK ELDOBÁSA
+  const handleCancel = () => {
+    if (hasLocalChanges) {
+      if (window.confirm('Vannak mentetlen változtatások. Biztosan bezárod?')) {
+        onClose();
+      }
+    } else {
+      onClose();
     }
   };
 
@@ -215,11 +242,18 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
         <div className="mt-3">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-xl font-semibold text-white">
-              Szállítólevél szerkesztése
-            </h3>
+            <div>
+              <h3 className="text-xl font-semibold text-white">
+                Szállítólevél szerkesztése
+              </h3>
+              {hasLocalChanges && (
+                <p className="text-sm text-yellow-400 mt-1">
+                  ⚠️ Vannak mentetlen változtatások
+                </p>
+              )}
+            </div>
             <button
-              onClick={onClose}
+              onClick={handleCancel}
               className="text-gray-400 hover:text-gray-200 transition-colors"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -505,10 +539,10 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
             </div>
           )}
 
-          {/* Action buttons MENTÉS GOMB*/}
+          {/* Action buttons */}
           <div className="flex justify-end space-x-4 mt-10 pt-6 border-t border-gray-600">
             <button
-              onClick={onClose}
+              onClick={handleCancel}
               disabled={saving}
               className="px-6 py-3 border border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
             >
@@ -517,15 +551,19 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={`px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                hasLocalChanges 
+                  ? 'bg-orange-600 hover:bg-orange-700' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
             >
-              {saving ? 'Mentés...' : 'Mentés'}
+              {saving ? 'Mentés...' : hasLocalChanges ? 'Változások mentése' : 'Mentés'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Edit Item Modal */}
+      {/* Edit Item Modal - ✅ LOKÁLIS SZERKESZTÉS */}
       {editingItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-[60]">
           <div className="relative top-20 mx-auto p-6 border w-11/12 md:w-2/3 lg:w-1/2 shadow-xl rounded-lg bg-gray-800 border-gray-600">
@@ -638,17 +676,15 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   onClick={() => setEditingItem(null)}
-                  disabled={saving}
-                  className="px-4 py-2 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
                 >
                   Mégse
                 </button>
                 <button
                   onClick={handleSaveEditedItem}
-                  disabled={saving}
-                  className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                 >
-                  {saving ? 'Mentés...' : 'Mentés'}
+                  Mentés
                 </button>
               </div>
             </div>

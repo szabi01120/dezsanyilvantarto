@@ -45,36 +45,42 @@ def get_low_stock_items():
         }), 400
 
 @inventory_bp.route('/<int:inventory_id>', methods=['DELETE'])
-def delete_inventory_item(inventory_id):
-    """Inventory item törlés"""
-    inventory_item = Inventory.query.get_or_404(inventory_id)
-    print("items:", inventory_item)
-
+def delete_inventory_item(inventory_id):    
+    """ Inventory item törlés """
     try:
+        # Inventory tétel keresése
+        inventory_item = Inventory.query.get(inventory_id)
+        if not inventory_item:
+            return jsonify({
+                'message': 'A termék nem található.'
+            }), 404
+        
+        # Termék mentése
+        product_name = inventory_item.product_name
+        
+        # Összes inventory movement törlés
         movements = InventoryMovement.query.filter_by(inventory_id=inventory_id).all()
         movements_count = len(movements)
-        print("movements:", movements)
-
+        
         for movement in movements:
-            print("Deleting movement:", movement)
+            print(f"Deleting movement: {movement}")
             db.session.delete(movement)
-        print("Deleted movements count:", movements_count)
-
-        product_name = inventory_item.product.name
-        print("Product name:", product_name)
+        
+        # Inventory tétel törlése
         db.session.delete(inventory_item)
-        print("Deleted inventory item:", inventory_item)
-
         db.session.commit()
-
-        return jsonify({
-            'message': f'{product_name} készlet elem törölve.',
+        
+        response_data = {
+            'message': f'Termék sikeresen törölve: {product_name}',
             'deleted_movements': movements_count
-        }), 200
-    
-    except Exception as e:
+        }
+        print(f"Response data: {response_data}")
+        return jsonify(response_data), 200
+        
+    except Exception as e:        
         db.session.rollback()
         return jsonify({
-            'message': 'Hiba a készlet elem törlésekor.',
-            'error': str(e)
+            'message': 'Hiba a termék törlésekor.',
+            'error': str(e),
+            'error_type': str(type(e))
         }), 400
