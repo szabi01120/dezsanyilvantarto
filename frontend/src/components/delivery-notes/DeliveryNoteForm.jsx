@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { DeliveryNoteService } from '../../services/deliveryNoteService';
+import ProductAutocomplete from '../ui/ProductAutocomplete';
 
 export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -8,7 +9,7 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
     notes: ''
   });
   const [items, setItems] = useState([]);
-  const [originalItems, setOriginalItems] = useState([]); // EREDETI TÉTELEK MENTÉSE
+  const [originalItems, setOriginalItems] = useState([]);
   const [newItem, setNewItem] = useState({
     product_name: '',
     product_type: '',
@@ -22,7 +23,7 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [hasLocalChanges, setHasLocalChanges] = useState(false); // LOKÁLIS VÁLTOZÁSOK KÖVETÉSE MODIFY KÖZBEN
+  const [hasLocalChanges, setHasLocalChanges] = useState(false);
 
   useEffect(() => {
     if (deliveryNote) {
@@ -32,7 +33,7 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
       });
       const currentItems = deliveryNote.items || [];
       setItems(currentItems);
-      setOriginalItems(JSON.parse(JSON.stringify(currentItems))); 
+      setOriginalItems(JSON.parse(JSON.stringify(currentItems)));
     }
   }, [deliveryNote]);
 
@@ -48,6 +49,30 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
       ...prev,
       [field]: value
     }));
+  };
+
+  // ✅ ÚJ: AUTOCOMPLETE HANDLER
+  const handleProductAutocomplete = async (query) => {
+    try {
+      const results = await DeliveryNoteService.getProductAutocomplete(query);
+      return results;
+    } catch (error) {
+      return [];
+    }
+  };
+
+  // ✅ ÚJ: TERMÉK KIVÁLASZTÁS AUTOCOMPLETE-BŐL
+  const handleProductSelect = (product) => {
+    setNewItem(prev => ({
+      ...prev,
+      product_name: product.product_name,
+      product_type: product.product_type,
+      manufacturer: product.manufacturer,
+      unit_of_measure: product.unit_of_measure,
+      unit_price: product.last_price.toString(),
+      currency: product.currency
+    }));
+    setError(null);
   };
 
   const validateItem = (item) => {
@@ -119,7 +144,6 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
     });
   };
 
-  // LOCAL TERMÉK MENTÉS
   const handleSaveEditedItem = () => {
     if (!validateItem(editingItem)) {
       setError('Minden mező kitöltése kötelező és a mennyiség/ár pozitív szám kell legyen.');
@@ -133,7 +157,6 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
       total_price: parseInt(editingItem.quantity) * parseFloat(editingItem.unit_price)
     };
 
-    // CSAK LOKAL STATE FRISSÍTÉS
     const updatedItems = items.map(item => 
       item.id === editingItem.id ? itemData : item
     );
@@ -154,8 +177,6 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
       setError(null);
 
       await DeliveryNoteService.deleteDeliveryNoteItem(deliveryNote.id, itemId);
-
-      // Helyi lista frissítése
       setItems(prev => prev.filter(item => item.id !== itemId));
     } catch (error) {
       console.error('Hiba a tétel törlésekor:', error);
@@ -165,21 +186,17 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
     }
   };
 
-  // BATCH SAVE - MINDEN VÁLTOZÁST EGYSZERRE MENT
   const handleSave = async () => {
     try {
       setSaving(true);
       setError(null);
 
-      // Szállítólevél adatok mentése
       await DeliveryNoteService.updateDeliveryNote(deliveryNote.id, formData);
 
-      // HA VAN LOCAL TERMÉK VÁLTOZÁS, AKKOR MENTÉS
       if (hasLocalChanges) {
-        // modified item search
         const modifiedItems = items.filter(item => {
           const original = originalItems.find(orig => orig.id === item.id);
-          if (!original) return false; // new item
+          if (!original) return false;
           
           return (
             original.product_name !== item.product_name ||
@@ -192,7 +209,6 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
           );
         });
 
-        // Módosított tételek mentése
         for (const item of modifiedItems) {
           const itemData = {
             product_name: item.product_name,
@@ -221,7 +237,6 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
     }
   };
 
-  // Mégse gomb - LOCAL VÁLTOZÁSOK ELDOBÁSA
   const handleCancel = () => {
     if (hasLocalChanges) {
       if (window.confirm('Vannak mentetlen változtatások. Biztosan bezárod?')) {
@@ -330,16 +345,18 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
             </h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-6">
+              {/* AUTOCOMPLETE TERMÉK NÉV */}
               <div className="xl:col-span-2">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Termék neve *
+                  <span className="text-xs text-blue-400 ml-1">(Kezdj el gépelni a kereséshez)</span>
                 </label>
-                <input
-                  type="text"
+                <ProductAutocomplete
                   value={newItem.product_name}
-                  onChange={(e) => handleNewItemChange('product_name', e.target.value)}
-                  className="block w-full px-4 py-3 rounded-lg border-gray-600 bg-gray-700 text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:ring-2 sm:text-sm transition-colors"
-                  placeholder="pl. Akácfa dézsa"
+                  onSelect={handleProductSelect}
+                  onInputChange={(value) => handleNewItemChange('product_name', value)}
+                  placeholder="pl. Akácfa dézsa..."
+                  getAutocompleteData={handleProductAutocomplete}
                 />
               </div>
               
@@ -563,7 +580,7 @@ export default function DeliveryNoteForm({ deliveryNote, onClose, onSave }) {
         </div>
       </div>
 
-      {/* Edit Item Modal - ✅ LOKÁLIS SZERKESZTÉS */}
+      {/* Edit Item Modal */}
       {editingItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-[60]">
           <div className="relative top-20 mx-auto p-6 border w-11/12 md:w-2/3 lg:w-1/2 shadow-xl rounded-lg bg-gray-800 border-gray-600">

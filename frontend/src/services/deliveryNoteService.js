@@ -87,5 +87,15 @@ export const DeliveryNoteService = {
       console.error(`Hiba a(z) ${id} azonosítójú szállítólevél törlésekor:`, error);
       throw error;
     }
+  },
+  // ✅ ÚJ: Autocomplete szolgáltatás
+  getProductAutocomplete: async (query) => {
+    try {
+      const response = await axios.get(`/delivery_notes/autocomplete/products?q=${encodeURIComponent(query)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Hiba az autocomplete lekérésekor:', error);
+      throw error;
+    }
   }
 };
